@@ -1,0 +1,6 @@
+{
+  "name": "Stellar ZK Privacy Dashboard",
+  "description": "An interactive dashboard for managing Stellar Soroban zero-knowledge credentials and clearing private asymmetric cross-chain intent settlements across Base (Solidity EVM), Solana (Anchor SVM), and Movement (MoveVM).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

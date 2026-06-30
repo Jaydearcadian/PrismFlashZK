@@ -1,0 +1,8 @@
+[package]
+name = "prism_circuit"
+type = "bin"
+authors = ["PrismZK Core Developers <dev@prismzk.io>"]
+compiler_version = ">=0.31.0"
+
+[dependencies]
+std = { tag = "v0.31.0" }

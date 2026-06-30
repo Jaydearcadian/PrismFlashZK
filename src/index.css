@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+body {
+  background-color: #F9F9F9;
+  color: #000000;
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbars for a premium developer terminal aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAFAFA;
+  border-left: 1px solid #E5E5E5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
+
+/* HIGH-CONTRAST PITCH-DARK MODE SYSTEM OVERRIDES (SWISS GRID THEME) */
+html.dark, html.dark body {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark {
+  /* CSS Variables for custom SVG chart coloring dynamically */
+  --bg-card: #080808;
+  --border-color: #1F1F24;
+}
+
+html.dark .bg-white {
+  background-color: #080808 !important;
+}
+
+html.dark .bg-[#F9F9F9] {
+  background-color: #000000 !important;
+}
+
+html.dark .bg-[#FAFAFA] {
+  background-color: #0B0B0C !important;
+}
+
+html.dark .bg-[#FAFAFA]/40 {
+  background-color: rgba(11, 11, 12, 0.4) !important;
+}
+
+html.dark .bg-[#FAFAFA]/20 {
+  background-color: rgba(11, 11, 12, 0.2) !important;
+}
+
+html.dark .bg-[#FAFAFA]/50 {
+  background-color: rgba(11, 11, 12, 0.5) !important;
+}
+
+html.dark .text-black {
+  color: #FFFFFF !important;
+}
+
+html.dark .text-[#666666] {
+  color: #A1A1AA !important; /* Zinc-400 */
+}
+
+html.dark .text-zinc-600 {
+  color: #D4D4D8 !important; /* Zinc-300 */
+}
+
+html.dark .text-zinc-500 {
+  color: #A1A1AA !important; /* Zinc-400 */
+}
+
+html.dark .text-zinc-400 {
+  color: #71717A !important; /* Zinc-500 */
+}
+
+html.dark .border-[#E5E5E5] {
+  border-color: #1F1F24 !important;
+}
+
+html.dark .border-[#F5F5F5] {
+  border-color: #18181B !important;
+}
+
+html.dark .border-[#FAFAFA] {
+  border-color: #18181B !important;
+}
+
+html.dark .border-black {
+  border-color: #FFFFFF !important;
+}
+
+html.dark .border-dashed {
+  border-style: dashed !important;
+}
+
+html.dark input, html.dark select, html.dark textarea {
+  background-color: #0C0C0E !important;
+  color: #FFFFFF !important;
+  border-color: #27272A !important;
+}
+
+html.dark input::placeholder {
+  color: #52525B !important;
+}
+
+/* Custom brand colors contrast enhancements for dark mode */
+html.dark .text-[#002FA7] {
+  color: #5C85FF !important;
+}
+
+html.dark .bg-[#002FA7] {
+  background-color: #0043F0 !important;
+  border-color: #5C85FF !important;
+}
+
+html.dark .bg-[#002FA7]/10 {
+  background-color: rgba(92, 133, 255, 0.15) !important;
+}
+
+html.dark .border-[#002FA7]/20 {
+  border-color: rgba(92, 133, 255, 0.3) !important;
+}
+
+html.dark .border-[#002FA7]/30 {
+  border-color: rgba(92, 133, 255, 0.4) !important;
+}
+
+html.dark .border-[#002FA7] {
+  border-color: #5C85FF !important;
+}
+
+html.dark .text-[#00A86B] {
+  color: #34D399 !important; /* Brighter emerald */
+}
+
+html.dark .bg-[#00A86B]/10 {
+  background-color: rgba(52, 211, 153, 0.15) !important;
+}
+
+html.dark .border-[#00A86B]/30 {
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+/* Scrollbar adjustment for dark mode */
+html.dark ::-webkit-scrollbar-track {
+  background: #080808 !important;
+  border-left: 1px solid #1F1F24 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #27272A !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46 !important;
+}
+

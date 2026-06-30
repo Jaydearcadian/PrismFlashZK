@@ -1,0 +1,18 @@
+[package]
+name = "prism_verifier"
+version = "1.0.0"
+edition = "2021"
+authors = ["PrismZK Core Developers <dev@prismzk.io>"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = "25.0.0"
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+lto = true
+codegen-units = 1
+panic = "abort"
