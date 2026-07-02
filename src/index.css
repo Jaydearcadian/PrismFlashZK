@@ -118,30 +118,30 @@ html.dark input::placeholder {
   color: #52525B !important;
 }
 
-/* Custom brand colors contrast enhancements for dark mode */
-html.dark .text-[#002FA7] {
-  color: #5C85FF !important;
+/* Custom PrismZK rose/champagne brand colors in dark mode */
+html.dark .text-[#d9a078] {
+  color: #d9a078 !important;
 }
 
-html.dark .bg-[#002FA7] {
-  background-color: #0043F0 !important;
-  border-color: #5C85FF !important;
+html.dark .bg-[#d9a078] {
+  background-color: #d9a078 !important;
+  border-color: #f3e0d3 !important;
 }
 
-html.dark .bg-[#002FA7]/10 {
-  background-color: rgba(92, 133, 255, 0.15) !important;
+html.dark .bg-[#d9a078]/10 {
+  background-color: rgba(217, 160, 120, 0.14) !important;
 }
 
-html.dark .border-[#002FA7]/20 {
-  border-color: rgba(92, 133, 255, 0.3) !important;
+html.dark .border-[#d9a078]/20 {
+  border-color: rgba(217, 160, 120, 0.28) !important;
 }
 
-html.dark .border-[#002FA7]/30 {
-  border-color: rgba(92, 133, 255, 0.4) !important;
+html.dark .border-[#d9a078]/30 {
+  border-color: rgba(217, 160, 120, 0.42) !important;
 }
 
-html.dark .border-[#002FA7] {
-  border-color: #5C85FF !important;
+html.dark .border-[#d9a078] {
+  border-color: #d9a078 !important;
 }
 
 html.dark .text-[#00A86B] {

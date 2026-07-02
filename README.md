@@ -1,24 +1,167 @@
-# 🔮 PrismZK & PrismFlash: Multi-VM Zero-Knowledge Intent Settlement Protocol
+# 🔮 PrismFlashZK: Basic Intent Layer Toward PrismZK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Cryptography: Noir ZK](https://img.shields.io/badge/Cryptography-Noir%20ZK-magenta)](https://noir-lang.org/)
 [![VM Ecosystem: Multi--VM](https://img.shields.io/badge/VM%20Ecosystem-EVM%20%7C%20SVM%20%7C%20MoveVM%20%7C%20Soroban-cyan)](#)
 
-Welcome to **Prism**, a state-of-the-art cryptographic clearinghouse and asymmetric intent-settlement pipeline. By combining zero-knowledge cryptography with specialized off-chain solver daemons, Prism bridges the execution gap between **Ethereum (Base Sepolia EVM)**, **Stellar (Soroban Rust WASM)**, **Solana (Devnet Anchor SVM)**, and **Movement (Porto MoveVM)**.
+**PrismFlashZK** is the hackathon-ready foundation layer for the larger **PrismZK** vision: an asymmetric zero-knowledge state-attestation framework for cross-VM execution.
+
+This repository intentionally focuses on a practical first milestone: a runnable intent-settlement cockpit, local/simulated multi-chain lifecycle, deployable contract skeletons, a Noir nullifier/commitment circuit, and solver-style event flow across **Base/EVM**, **Stellar/Soroban**, **Solana/SVM**, and **Movement/MoveVM**.
+
+The long-term PrismZK whitepaper describes native Soroban ZK host verification, TTL-optimized nullifier storage, and hardware-shielded Spectrum Engine execution. This codebase should be read as the **basic layer toward that architecture** — not as a claim that every future PrismZK primitive is already production-complete.
 
 ---
 
-## 📖 The Prism Narrative: The Multi-VM Cross-Chain Conundrum
+## ✅ Latest Live Testnet Proof Route
 
-In the multi-chain universe, users are fragmented across isolated Virtual Machines. Swapping assets between an EVM chain, an SVM chain, a MoveVM network, and a Soroban ledger traditionally requires crawling through sluggish, multi-hop liquidity bridges, trusting centralized wrappers, or exposing oneself to predatory front-running and MEV. 
+### Prizm0 `$Z0` ZK Multi-Chain Token Registry
 
-**Prism** rewrites this paradigm. 
+Create/replay the Prizm0 multichain token artifact with:
 
-Instead of moving assets through physical bridges, Prism processes swaps as **Cryptographic Intents**. When a user wants to execute a cross-chain swap, they lock their capital on an **Origin Chain** (Base Sepolia) and generate an **UltraHonk Zero-Knowledge Proof** using the **Noir Domain Specific Language (DSL)**. 
+```bash
+npm run token:create:multichain
+```
 
-This ZK-proof guarantees that the funds can *only* be unlocked on the origin chain if a matching, concurrent disbursal is successfully settled on the **Destination Chains** (Solana Devnet & Movement Porto). The clearinghouse of these proofs resides on **Stellar (Soroban)**, verifying the BN254 curve pairing in sub-second times. Off-chain **Solver Daemons** listen to these ledger syncs in real-time, executing instant out-of-band payouts and submitting the cryptographic settlement claims.
+Current Prizm0 state:
 
-### The Lifecycle of a Prism Swap
+| Component | Link / ID |
+|---|---|
+| Token | `Prizm0` / `$Z0` |
+| Canonical supply | `3000000000` base units, 6 decimals |
+| Stellar token registry | https://stellar.expert/explorer/testnet/contract/CB74E7CPJVVRTVZBN4FZCQ4XMA3LAMU4M4OOH5K3XSBISKKY3BYC7PAY |
+| Stellar allocation proof tx | https://stellar.expert/explorer/testnet/tx/542d30733ac13b2e728ed911282401e0c791bacd21c9f34d17cb89a2dd72a763 |
+| Base ERC20 | https://sepolia.basescan.org/address/0xf034869FAa7aFCEA9230cdf4037F3aa187030c1a |
+| Solana SPL mint | https://explorer.solana.com/address/J4RVaziZE6sE5HL8mUxZNvHB7SBPfn6WgKrXLZdCUJCj?cluster=devnet |
+| Token artifact | `deployments/tokens/Z0.latest.json` |
+| Supply artifact | `deployments/tokens/Z0.supply.json` |
+
+ZK allocation proof:
+
+```text
+CIRCUIT=zk/omni_token_allocation
+SCHEME=ultra_honk
+ORACLE_HASH=keccak
+PROOF_LEN=14592
+PUBLIC_INPUTS_LEN=256
+```
+
+Proof-cleared commitments:
+
+```text
+TOKEN_ID_COMMITMENT=0x11dc890bb4be43ff6311802c4a5b5ff199750c8d043094f6ccf2e2dfdae685b2
+ALLOCATION_COMMITMENT=0x11dc890bb4be43ff6311802c4a5b5ff199750c8d0433103d2e4001457af58954
+NULLIFIER=0x0000000000000000000000000000000000000000000000084331a736a01e4b59
+```
+
+Allocation:
+
+```text
+Base Sepolia:     1000000000 minted as ERC20 Z0
+Solana Devnet:    1000000000 minted as SPL Z0
+Movement Porto:   1000000000 proof-allocated; Move coin module compile is blocked by pinned AptosFramework invariant/type errors in the current Movement CLI toolchain
+```
+
+---
+
+## ✅ Latest Live Testnet Proof Route
+
+Run the public live/dev testnet route with:
+
+```bash
+npm run zk:verified-xchain:testnet
+```
+
+This executes:
+
+```text
+Native Noir + bb UltraHonk proof
+→ Stellar public testnet Soroban proof clearing
+→ route-gated Base Sepolia source escrow
+→ Solana devnet payout
+→ Movement Porto payout
+→ Base route-commitment settlement claim
+→ deployments/live-testnet-latest.json
+```
+
+Current live artifacts:
+
+| Component | Link / ID |
+|---|---|
+| Stellar proof verifier | `CBMOJZTKEC7IMEY65HDJT3LI65Z6JSVND22FQRDYMP6FHGVVGQVB4GX7` |
+| Stellar contract explorer | https://stellar.expert/explorer/testnet/contract/CBMOJZTKEC7IMEY65HDJT3LI65Z6JSVND22FQRDYMP6FHGVVGQVB4GX7 |
+| Latest Stellar proof tx | https://stellar.expert/explorer/testnet/tx/8671c2994fb52dba23fe12714149bdc98a54dc7c7ee57c22e122b470cfd308b5 |
+| Route-gated Base escrow | `0xb7AE4DC12A114cCb077Db1d4899b0Da591e237BA` |
+| Base escrow explorer | https://sepolia.basescan.org/address/0xb7AE4DC12A114cCb077Db1d4899b0Da591e237BA |
+| Latest live artifact | `deployments/live-testnet-latest.json` |
+| Unified liquidity artifact | `deployments/unified-liquidity-latest.json` |
+
+Unified liquidity commands:
+
+```bash
+npm run liquidity:unified:test
+npm run liquidity:project
+```
+
+The unified layer models each route as an async/asymmetric balance sheet:
+
+```text
+QUOTE_RESERVED
+→ ROUTE_PROVED
+→ SOROBAN_CLEARED
+→ SOURCE_LOCKED
+→ DESTINATION_PAID / DESTINATION_FAILED
+→ SOURCE_CLAIMED
+→ RECONCILED / FAILED_PARTIAL / RETRYABLE
+```
+
+Liquidity buckets tracked per chain:
+
+```text
+available | reserved | locked | paid | claimable | settled | failed
+```
+
+Latest unified summary:
+
+```text
+STATUS=RECONCILED
+PENDING_LIABILITY=0
+TOTAL_DESTINATION_PAID=426800000
+BASE_SETTLED=1200000000
+```
+
+Latest route identifiers:
+
+```text
+NULLIFIER=0x000000000000000000000000000000000000000000000000021e4048a472d830
+ROUTE_COMMITMENT=0x000000000000000000000000000000000000000000000000000186e6a99da129
+PAYLOAD_COMMITMENT=0x000000000000000000000000000000000000000000000000000186e6a9d2cbdb
+ROUTE_STATE=RECONCILED
+```
+
+---
+
+## 🎯 Hackathon Scope: What This Build Proves
+
+| Layer | This repository builds now | PrismZK future direction |
+|---|---|---|
+| Intent UX | React cockpit for creating, clearing, challenging, and finalizing intents | Full Prism SDK with proof generation UX |
+| Origin lock | Solidity `BaseEscrow` optimistic lock/claim/finalize flow | Production collateral vaults and audited settlement modules |
+| Clearinghouse | Soroban verifier/registry scaffold plus local attestation flow | Native Soroban ZK host verification and TTL nullifier expiry |
+| ZK circuit | Noir nullifier + payload commitment invariants | Production proof system integration and verified public inputs |
+| Execution | Solver daemon simulation for concurrent Solana/Movement payouts | Hardware-shielded Spectrum Engine / TEE execution matrix |
+| Multi-VM contracts | Solana, Move, Soroban, and Solidity contract skeletons | Hardened deployed gateway contracts per target VM |
+
+---
+
+## 📖 The Prism Narrative: From Fragmented VMs to Attested Intents
+
+In the multi-chain universe, users and agents are fragmented across isolated virtual machines. Moving value or state between an EVM chain, SVM chain, MoveVM network, and Soroban ledger usually means trusting bridge custody, wrapped assets, or slow multi-party signing systems.
+
+**PrismFlashZK** demonstrates the first usable layer of an alternative path: represent cross-VM actions as **cryptographic intents** with replay protection and payload binding.
+
+In the current build, a user locks capital on an origin chain model, derives a nullifier and payload commitment, clears the intent through the Prism clearinghouse layer, and triggers solver-style concurrent payouts to destination-chain modules. The app exposes both the optimistic settlement path (**PrismFlash**) and a future upgrade hook for hardware/ZK-enforced settlement (**PrismZK**).
+
+### The Lifecycle of a PrismFlashZK Intent
 ```
       [Base Sepolia] ===( 1. Lock Assets )===> [BaseEscrow.sol]
             │                                         │
@@ -71,7 +214,7 @@ To run this entire multi-chain ecosystem locally and interact with public devnet
 
 ## 📂 Project Structure & Script Index
 
-This project includes a series of robust, production-grade scripts and contracts designed to automate development, key generation, event listening, and transaction dispatching.
+This project includes the scripts and contract scaffolds needed to demonstrate the basic PrismFlashZK layer: local development, key generation, event listening, transaction dispatch simulation, and testnet-oriented deployment experiments.
 
 ```
 ├── .env.example                     # Environment template file

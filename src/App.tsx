@@ -192,10 +192,10 @@ export default function App() {
   // --- Network Mode State (Demo Sandbox vs. Live Production Testnets) ---
   const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
   const [liveContracts, setLiveContracts] = useState({
-    baseEscrow: "0x89C762c2f2da84a9ffc129e917a94f0ee002FA7a",
+    baseEscrow: "0x89C762c2f2da84a9ffc129e917a94f0eed9a078a",
     stellarClearinghouse: "CCLAIRINGHOUSE25_SOROBAN_TESTNET_78a19",
     solanaProgram: "SolProgram111111111111111111111111111111",
-    movementModule: "0xMove_89c762c2f2da84a9ffc129e917a94f0ee002FA7a::escrow"
+    movementModule: "0xMove_89c762c2f2da84a9ffc129e917a94f0eed9a078a::escrow"
   });
 
   // --- Gas & Congestion Estimator States ---
@@ -605,7 +605,8 @@ export default function App() {
         nullifier: stepData.nullifier,
         payloadCommitment: stepData.payloadCommitment,
         maxBlockHeight,
-        proof: stepData.proof
+        proof: stepData.proof,
+        routePlan: stepData.routePlan
       })
     });
     const clearData = await clearRes.json();
@@ -689,7 +690,8 @@ export default function App() {
           nullifier: sdkResult.nullifier,
           payloadCommitment: sdkResult.payloadCommitment,
           maxBlockHeight,
-          proof: sdkResult.proof
+          proof: sdkResult.proof,
+          routePlan: sdkResult.routePlan
         })
       });
       const clearData = await clearRes.json();
@@ -785,12 +787,12 @@ export default function App() {
       <header className="border-b border-[#E5E5E5] dark:border-zinc-800 bg-[#F9F9F9] dark:bg-zinc-900 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-50 transition-colors">
         <div className="flex items-center gap-3">
           <div className="border border-black dark:border-zinc-700 p-2 rounded-none bg-white dark:bg-zinc-800">
-            <Cpu className="w-6 h-6 text-[#002FA7] dark:text-cyan-400" />
+            <Cpu className="w-6 h-6 text-[#d9a078] dark:text-[#d9a078]" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="font-sans text-base font-bold tracking-tighter text-black dark:text-white uppercase">PRISMFLASH // ASYMMETRIC INTENT CONTROL LAYER</h1>
-              <span className={`font-mono text-[9px] px-2 py-0.5 border font-bold uppercase ${isLiveMode ? "bg-amber-600/10 text-amber-600 border-amber-600/30 dark:border-amber-600/50" : "bg-[#002FA7]/10 text-[#002FA7] border-[#002FA7]/30 dark:border-cyan-400/50"}`}>
+              <span className={`font-mono text-[9px] px-2 py-0.5 border font-bold uppercase ${isLiveMode ? "bg-amber-600/10 text-amber-600 border-amber-600/30 dark:border-amber-600/50" : "bg-[#d9a078]/10 text-[#d9a078] border-[#d9a078]/30 dark:border-[#d9a078]/50"}`}>
                 {isLiveMode ? "● LIVE_TESTNET_NETWORKS" : "● MVP_SOLVER_SIMULATION"}
               </span>
             </div>
@@ -818,7 +820,7 @@ export default function App() {
               }}
               className={`px-2.5 py-1 uppercase font-bold transition-all cursor-pointer rounded-none text-[9px] ${
                 !isLiveMode
-                  ? "bg-[#002FA7] dark:bg-cyan-500 text-white dark:text-black"
+                  ? "bg-[#d9a078] dark:bg-[#d9a078] text-white dark:text-black"
                   : "bg-white dark:bg-zinc-900 hover:bg-[#E5E5E5] dark:hover:bg-zinc-800 text-[#666666] dark:text-zinc-400"
               }`}
             >
@@ -845,11 +847,11 @@ export default function App() {
             <span className="text-[9px] font-mono text-[#666666] dark:text-zinc-400 uppercase hidden sm:inline">TEE ENFORCEMENT:</span>
             <button 
               onClick={() => handleToggleHardware(!isHardwareEnforced)}
-              className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer border border-[#E5E5E5] dark:border-zinc-700 rounded-none transition-colors duration-200 ease-in-out focus:outline-none ${isHardwareEnforced ? 'bg-[#002FA7] dark:bg-cyan-500' : 'bg-[#E5E5E5] dark:bg-zinc-800'}`}
+              className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer border border-[#E5E5E5] dark:border-zinc-700 rounded-none transition-colors duration-200 ease-in-out focus:outline-none ${isHardwareEnforced ? 'bg-[#d9a078] dark:bg-[#d9a078]' : 'bg-[#E5E5E5] dark:bg-zinc-800'}`}
             >
               <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-none bg-white border border-[#CCCCCC] transition duration-200 ease-in-out ${isHardwareEnforced ? 'translate-x-3.5' : 'translate-x-0'}`} />
             </button>
-            <span className={`text-[9px] font-mono uppercase px-1 py-0.5 border hidden lg:inline ${isHardwareEnforced ? 'bg-[#002FA7]/10 text-[#002FA7] dark:text-cyan-400 border-[#002FA7]/30' : 'bg-[#FAFAFA] dark:bg-zinc-800 text-[#999999] border-[#E5E5E5] dark:border-zinc-800'}`}>
+            <span className={`text-[9px] font-mono uppercase px-1 py-0.5 border hidden lg:inline ${isHardwareEnforced ? 'bg-[#d9a078]/10 text-[#d9a078] dark:text-[#d9a078] border-[#d9a078]/30' : 'bg-[#FAFAFA] dark:bg-zinc-800 text-[#999999] border-[#E5E5E5] dark:border-zinc-800'}`}>
               {isHardwareEnforced ? "TEE Active" : "Optimistic"}
             </span>
           </div>
@@ -875,7 +877,7 @@ export default function App() {
             <div className="p-4 bg-[#FAFAFA] dark:bg-zinc-950 flex flex-col gap-2">
               <span className="text-[9px] font-mono text-[#666666] dark:text-zinc-400 uppercase tracking-widest font-bold">COCKPIT NAVIGATION</span>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#002FA7] dark:bg-cyan-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#d9a078] dark:bg-[#d9a078] animate-pulse" />
                 <span className="text-[10px] font-mono uppercase text-black dark:text-white font-bold">ACTIVE ROUTER V1.0</span>
               </div>
             </div>
@@ -889,7 +891,7 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "overview"
-                    ? "bg-black dark:bg-cyan-500 text-white dark:text-black border-black dark:border-cyan-400"
+                    ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
                     : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                 }`}
               >
@@ -904,7 +906,7 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "intent"
-                    ? "bg-black dark:bg-cyan-500 text-white dark:text-black border-black dark:border-cyan-400"
+                    ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
                     : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                 }`}
               >
@@ -919,7 +921,7 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "vaults"
-                    ? "bg-black dark:bg-cyan-500 text-white dark:text-black border-black dark:border-cyan-400"
+                    ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
                     : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                 }`}
               >
@@ -934,7 +936,7 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "blueprints"
-                    ? "bg-black dark:bg-cyan-500 text-white dark:text-black border-black dark:border-cyan-400"
+                    ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
                     : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                 }`}
               >
@@ -949,7 +951,7 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "settings"
-                    ? "bg-black dark:bg-cyan-500 text-white dark:text-black border-black dark:border-cyan-400"
+                    ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
                     : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                 }`}
               >
@@ -967,13 +969,13 @@ export default function App() {
             </div>
             <div className="flex justify-between">
               <span>SOLVER TEE:</span>
-              <span className={isHardwareEnforced ? "text-cyan-400 font-bold" : "text-amber-500 font-bold"}>
+              <span className={isHardwareEnforced ? "text-[#d9a078] font-bold" : "text-amber-500 font-bold"}>
                 {isHardwareEnforced ? "ENFORCED" : "OPTIMISTIC"}
               </span>
             </div>
             <div className="flex justify-between">
               <span>SANDBOX:</span>
-              <span className="text-[#002FA7] dark:text-cyan-400 font-bold">{!isLiveMode ? "ACTIVE" : "OFF-CHAIN"}</span>
+              <span className="text-[#d9a078] dark:text-[#d9a078] font-bold">{!isLiveMode ? "ACTIVE" : "OFF-CHAIN"}</span>
             </div>
           </div>
         </section>
@@ -1047,6 +1049,7 @@ export default function App() {
               swapStep={swapStep}
               handleExecuteSwap={handleExecuteSwap}
               chains={chains}
+              walletAddresses={walletAddresses}
               isHardwareEnforced={isHardwareEnforced}
               handleChallenge={handleChallenge}
               handleFinalize={handleFinalize}
@@ -1142,7 +1145,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="border-t border-[#E5E5E5] dark:border-zinc-800 bg-[#FAFAFA] dark:bg-zinc-900 py-4 px-6 text-center text-[9px] font-mono text-[#666666] dark:text-zinc-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 transition-colors">
         <span>PRISMFLASH // SECURE MULTI-VM RELAY SOLVER COCKPIT &copy; 2026. ALL RIGHTS RESERVED.</span>
-        <div className="flex items-center justify-center gap-4 text-[#002FA7] dark:text-cyan-400">
+        <div className="flex items-center justify-center gap-4 text-[#d9a078] dark:text-[#d9a078]">
           <span className="flex items-center gap-1 font-bold">
             <span className="w-1.5 h-1.5 bg-[#00A86B] rounded-none animate-pulse" />
             SOLVER_DAEMON_ONLINE
