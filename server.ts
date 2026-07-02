@@ -178,6 +178,14 @@ async function startServer() {
     return { success: true, tx: "phase2-" + Date.now() };
   }
 
+// NOTE: this shells out to a hardcoded contract ID/path and was already non-functional
+// before any recent changes — `--proof 00` is a literal dummy byte, never a real proof,
+// and the deployed contract targeted here predates the fix in contracts/soroban/src/lib.rs
+// (which now takes `--attestation_signature <64-byte ed25519 sig>` instead of `--proof`,
+// since Soroban has no live BN254 pairing-check host function to verify a proof against —
+// see that file's module doc). Treat this function as illustrative scaffolding, not a
+// working integration, until it's rewritten against the new contract ABI with a real
+// attestor keypair and redeployed.
 function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxBlockHeight: number, routePlan?: any): { success: boolean; tx?: string; error?: string } {
     try {
       const cleanNull = nullifier.replace(/^0x/, '');

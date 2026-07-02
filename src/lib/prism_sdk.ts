@@ -4,12 +4,19 @@
  * Poseidon2 commitment binding, and cryptographic proof compilation.
  */
 
-// Simple robust hash function simulations for Poseidon2 & Keccak256 in JS/TS 
-// to ensure byte-perfect deterministic layouts across runtimes without heavy external WASM binaries.
+// MOCK HASHES — NOT REAL CRYPTOGRAPHY.
+// PrismCrypt.poseidon2() / .keccak256() below are deterministic placeholder hashes for
+// the browser demo/cockpit only. They do NOT compute real Poseidon2 (BN254) or
+// Keccak256, and their output will NOT match circuits/src/main.nr, which uses Noir's
+// real Poseidon2::hash.
+// Before this SDK can produce a nullifier/commitment that a real proof would satisfy,
+// the circuit itself must be executed (e.g. via @noir-lang/noir_js + a compiled
+// circuits/src/main.nr) rather than reimplementing the hash by hand here — hand-rolling
+// the "same" hash in three languages (Noir, TS, Rust) and hoping they match bit-for-bit
+// is exactly how these systems silently diverge.
 export class PrismCrypt {
   /**
-   * Simulates Poseidon2 hashing over Fields (represented as hex/decimals)
-   * Enforces BN254 curve scalar constraints.
+   * MOCK — deterministic placeholder only, not real Poseidon2. See class-level note.
    */
   static poseidon2(inputs: string[]): string {
     // Standardized deterministic string hashing over BN254 prime field
@@ -36,7 +43,8 @@ export class PrismCrypt {
   }
 
   /**
-   * Simulates Keccak256 hash formatting for EVM contracts
+   * MOCK — not real Keccak256, just a DJB2-style placeholder for the cockpit demo.
+   * A real ethers.js/viem keccak256 must be used before this touches a live EVM contract.
    */
   static keccak256(data: Uint8Array | string): string {
     let inputStr = typeof data === "string" ? data : Array.from(data).map(b => b.toString(16).padStart(2, "0")).join("");
@@ -97,9 +105,10 @@ export class PrismSDK {
     // C = Poseidon2(intents_root, max_block_height)
     const payloadCommitment = PrismCrypt.poseidon2([intentsRoot, maxBlockHeight.toString()]);
 
-    // 4. Generate Mock UltraHonk Proof (π)
-    // In our browser cockpit, we pack verification steps, constraints, and public inputs 
-    // into a hex-encoded proof block compatible with the Soroban verify_and_clear_intent function.
+    // 4. Generate Mock Proof Bytes (π) — placeholder only, see generateMockProofBytes().
+    // contracts/soroban/src/lib.rs no longer accepts a raw proof blob; it verifies a
+    // signed attestation instead (see that file's module doc for why). This mock proof
+    // is kept for the cockpit's contract-inspector display, not for on-chain submission.
     const mockProofBytes = this.generateMockProofBytes(secretKey, nonce, intentsRoot, maxBlockHeight);
 
     return {
@@ -129,8 +138,9 @@ export class PrismSDK {
   }
 
   /**
-   * Simulates Noir UltraHonk proof binary generation.
-   * Includes structural headers indicating the circuit name, input sizes, and witness results.
+   * MOCK — cosmetic hex blob for the cockpit's contract-inspector UI only. This is not a
+   * real UltraHonk proof; it contains no actual witness or circuit constraint data. A real
+   * proof must come from `nargo execute` + `bb prove` against circuits/src/main.nr.
    */
   private static generateMockProofBytes(
     secretKey: string,
