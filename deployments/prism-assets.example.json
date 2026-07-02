@@ -1,0 +1,53 @@
+{
+  "_comment": "TEMPLATE — every *_PENDING_DEPLOYMENT value below is a placeholder, not a real address. Run scripts/create_multivm_token.js against funded testnet keys to produce deployments/prism-assets.local.json with real values; server.ts only reads this .example.json when .local.json doesn't exist yet.",
+  "network": "testnet",
+  "clearinghouse": "stellar-soroban",
+  "stellarRegistry": "STELLAR_MASTER_STATE_REGISTRY_CONTRACT_ID_PENDING_DEPLOYMENT",
+  "liquidityPolicy": {
+    "minRouteUsd": 10,
+    "maxRouteUsd": 1500,
+    "disputeWindowBlocks": 150
+  },
+  "chains": {
+    "base-sepolia": {
+      "vm": "evm",
+      "chainIdNumeric": 84532,
+      "liquidityAsset": "pUSD",
+      "vaultId": "base-escrow-vault",
+      "contracts": {
+        "escrow": "BASE_ESCROW_ADDRESS_PENDING_DEPLOYMENT",
+        "token": "BASE_PUSD_TOKEN_ADDRESS_PENDING_DEPLOYMENT"
+      }
+    },
+    "solana-devnet": {
+      "vm": "svm",
+      "liquidityAsset": "pUSD",
+      "vaultId": "solana-vault-pda",
+      "contracts": {
+        "program": "PrisMFLasH111111111111111111111111111111111",
+        "mint": "SOLANA_PUSD_MINT_PENDING_DEPLOYMENT",
+        "vaultTokenAccount": "SOLANA_VAULT_TOKEN_ACCOUNT_PENDING_DEPLOYMENT"
+      }
+    },
+    "movement-porto": {
+      "vm": "movevm",
+      "liquidityAsset": "pUSD",
+      "vaultId": "movement-vault",
+      "contracts": {
+        "escrow": "MOVEMENT_ESCROW_MODULE_ADDRESS_PENDING_DEPLOYMENT",
+        "coinModule": "MOVEMENT_PUSD_COIN_MODULE_ADDRESS_PENDING_DEPLOYMENT"
+      }
+    },
+    "stellar": {
+      "vm": "soroban",
+      "liquidityAsset": "pUSD",
+      "vaultId": "stellar-master-state-registry",
+      "contracts": {
+        "verifier": "STELLAR_PRISM_VERIFIER_CONTRACT_ID_PENDING_DEPLOYMENT",
+        "clearinghouse": "STELLAR_MASTER_STATE_REGISTRY_CONTRACT_ID_PENDING_DEPLOYMENT",
+        "issuer": "STELLAR_PUSD_ISSUER_ADDRESS_PENDING_DEPLOYMENT",
+        "distributor": "STELLAR_PUSD_DISTRIBUTOR_ADDRESS_PENDING_DEPLOYMENT"
+      }
+    }
+  }
+}

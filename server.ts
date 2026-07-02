@@ -180,8 +180,9 @@ async function startServer() {
 
 // NOTE: this shells out to a hardcoded contract ID/path and was already non-functional
 // before any recent changes — `--proof 00` is a literal dummy byte, never a real proof,
-// and the deployed contract targeted here predates the fix in contracts/soroban/src/lib.rs
-// (which now takes `--attestation_signature <64-byte ed25519 sig>` instead of `--proof`,
+// and the deployed contract targeted here predates the fix in
+// contracts/soroban/prism_verifier/src/lib.rs (which now takes
+// `--attestation_signature <64-byte ed25519 sig>` instead of `--proof`,
 // since Soroban has no live BN254 pairing-check host function to verify a proof against —
 // see that file's module doc). Treat this function as illustrative scaffolding, not a
 // working integration, until it's rewritten against the new contract ABI with a real
@@ -440,7 +441,7 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
   });
 
   app.post("/api/liquidity/seed", (req, res) => {
-    const { vaultId, amount, mode = "add" } = req.body;
+    const { vaultId, amount, mode = "add", nullifier } = req.body;
     if (!vaultId || amount === undefined) {
       return res.status(400).json({ error: "Missing vaultId or amount" });
     }
@@ -449,6 +450,14 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     const value = Number(amount);
     if (!Number.isFinite(value) || value < 0) return res.status(400).json({ error: "amount must be a non-negative number" });
     vault.available = mode === "set" ? value : vault.available + value;
+    // Present when this seed reflects a real on-chain register_cross_vm_action call
+    // (see multichain_watcher.js's liquidity reconciliation loop) rather than a manual
+    // cockpit adjustment — mirror it into the same attestation-count/nullifier-log the
+    // Soroban clearing path uses, so /api/liquidity reflects real reconciliation activity.
+    if (nullifier && !liquidityState.sorobanLedger.nullifiers.includes(nullifier)) {
+      liquidityState.sorobanLedger.nullifiers.push(nullifier);
+      liquidityState.sorobanLedger.attestationCount += 1;
+    }
     recomputeSorobanIndex();
     persistLiquidityState();
     addSolverLog("SUCCESS", `Liquidity ${mode === "set" ? "set" : "seeded"}: ${vaultId} now has ${vault.available} ${vault.asset}. Soroban index refreshed.`);
@@ -935,7 +944,8 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     let filePath = "";
 
     if (type === "noir") filePath = "circuits/src/main.nr";
-    else if (type === "soroban") filePath = "contracts/soroban/src/lib.rs";
+    else if (type === "soroban") filePath = "contracts/soroban/prism_verifier/src/lib.rs";
+    else if (type === "soroban-registry") filePath = "contracts/soroban/master_state_registry/src/lib.rs";
     else if (type === "solidity") filePath = "contracts/solidity/BaseEscrow.sol";
     else if (type === "solana") filePath = "contracts/solana/programs/solana_vault/src/lib.rs";
     else if (type === "movement") filePath = "contracts/move/sources/movement_escrow.move";

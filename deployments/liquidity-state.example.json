@@ -1,0 +1,40 @@
+{
+  "_comment": "TEMPLATE — all balances start at 0 because nothing has been deployed/issued yet. scripts/create_multivm_token.js overwrites deployments/liquidity-state.local.json with real balances after a real token is issued across all four chains.",
+  "updatedAt": null,
+  "vaults": {
+    "base-escrow-vault": {
+      "role": "source-lock",
+      "asset": "pUSD",
+      "available": 0,
+      "locked": 0,
+      "settled": 0
+    },
+    "solana-vault-pda": {
+      "role": "destination-payout",
+      "asset": "pUSD",
+      "available": 0,
+      "locked": 0,
+      "settled": 0
+    },
+    "movement-vault": {
+      "role": "destination-payout",
+      "asset": "pUSD",
+      "available": 0,
+      "locked": 0,
+      "settled": 0
+    },
+    "stellar-master-state-registry": {
+      "role": "liquidity-index",
+      "asset": "pUSD",
+      "available": 0,
+      "locked": 0,
+      "settled": 0
+    }
+  },
+  "sorobanLedger": {
+    "totalIndexedLiquidityUsd": 0,
+    "pendingSettlements": 0,
+    "nullifiers": [],
+    "attestationCount": 0
+  }
+}

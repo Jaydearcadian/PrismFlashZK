@@ -1,14 +1,9 @@
-[package]
-name = "prism_verifier"
-version = "1.0.0"
-edition = "2021"
-authors = ["PrismZK Core Developers <dev@prismzk.io>"]
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-soroban-sdk = "25.0.0"
+[workspace]
+resolver = "2"
+members = [
+    "prism_verifier",
+    "master_state_registry",
+]
 
 [profile.release]
 opt-level = "z"

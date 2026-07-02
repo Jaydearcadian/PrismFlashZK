@@ -6,7 +6,7 @@
 // writing — see https://github.com/stellar/stellar-protocol/blob/master/core/cap-0074.md
 // and cap-0075.md). Until those land, a proof from this circuit is verified off-chain
 // (`bb verify`) and relayed on-chain via a signed attestation, per Stellar's documented
-// near-term pattern for Noir/BN254 circuits. See contracts/soroban/src/lib.rs.
+// near-term pattern for Noir/BN254 circuits. See contracts/soroban/prism_verifier/src/lib.rs.
 
 use dep::std::hash::poseidon2::Poseidon2;
 

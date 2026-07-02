@@ -116,10 +116,16 @@ movement move publish --profile default
 
 ---
 
-## 4. Deploying the Soroban Clearinghouse Contract (`Cargo.toml`)
+## 4. Deploying the Soroban Contracts
 ### Network: **Stellar Testnet**
 
-The Stellar Soroban contract verifies zero-knowledge/optimistic claims and records clearance events.
+`contracts/soroban` is a two-crate Cargo workspace, not a single contract — Soroban requires
+one `#[contract]` struct per WASM binary, so the ZK-attestation clearance logic and the
+liquidity/bonding-curve registry are separate crates:
+- **`prism_verifier`**: verifies zero-knowledge/optimistic claims and records clearance events.
+- **`master_state_registry`**: the "One State Registry" — a canonical multi-chain token balance
+  sheet + bonding-curve price. It's a *singleton per instance*: deploy it once per token (see
+  Step D), not once total.
 
 #### Step A: Create and Fund Stellar Account
 Use Stellar CLI to configure a testnet identity:
@@ -128,20 +134,34 @@ cd contracts/soroban
 stellar keys generate --global deployer --network testnet
 ```
 
-#### Step B: Build Wasm Contract
-Compile the Rust contract into WebAssembly bytecode optimized for Soroban:
+#### Step B: Build Both Contracts
+Compile the Rust workspace into WebAssembly bytecode optimized for Soroban (produces both
+`prism_verifier.wasm` and `master_state_registry.wasm`):
 ```bash
 stellar contract build
 ```
 
-#### Step C: Deploy to Stellar Testnet
+#### Step C: Deploy `prism_verifier`
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/prism_soroban_escrow.wasm \
+  --wasm target/wasm32v1-none/release/prism_verifier.wasm \
   --source deployer \
   --network testnet
 ```
-*Note the returned **Soroban Contract Address**.*
+*Note the returned **Soroban Contract Address**, then call its `initialize(attestor_key)` once
+before it can clear any intents — see `contracts/soroban/prism_verifier/src/lib.rs`.*
+
+#### Step D: Upload (not deploy) `master_state_registry`
+Upload the code without instantiating an instance yet — a fresh instance gets created per token
+later, reusing this same uploaded WASM hash:
+```bash
+stellar contract upload \
+  --wasm target/wasm32v1-none/release/master_state_registry.wasm \
+  --source deployer \
+  --network testnet
+```
+*Note the returned **WASM hash** — `scripts/create_multivm_token.js` needs it to instantiate a
+registry per token via `stellar contract deploy --wasm-hash <hash>`.*
 
 ---
 

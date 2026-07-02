@@ -106,7 +106,7 @@ export class PrismSDK {
     const payloadCommitment = PrismCrypt.poseidon2([intentsRoot, maxBlockHeight.toString()]);
 
     // 4. Generate Mock Proof Bytes (π) — placeholder only, see generateMockProofBytes().
-    // contracts/soroban/src/lib.rs no longer accepts a raw proof blob; it verifies a
+    // contracts/soroban/prism_verifier/src/lib.rs no longer accepts a raw proof blob; it verifies a
     // signed attestation instead (see that file's module doc for why). This mock proof
     // is kept for the cockpit's contract-inspector display, not for on-chain submission.
     const mockProofBytes = this.generateMockProofBytes(secretKey, nonce, intentsRoot, maxBlockHeight);

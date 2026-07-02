@@ -13,6 +13,7 @@
     "orchestrate": "bash deploy_and_run_all.sh",
     "solver-daemon": "tsx solver_daemon_controller.ts",
     "create-tokens": "node create_tokens.js",
+    "create-multivm-token": "node scripts/create_multivm_token.js",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },
@@ -31,7 +32,10 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@aptos-labs/ts-sdk": "^7.1.3",
+    "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
+    "@stellar/stellar-sdk": "^16.0.1",
     "@types/d3": "^7.4.3",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
