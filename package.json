@@ -10,6 +10,8 @@
     "diagnose": "bash check_toolchain.sh",
     "dashboard": "node live_dashboard.js",
     "provision-wallets": "node generate_wallets.js",
+    "preflight": "node scripts/preflight.js",
+    "deploy-testnet": "node scripts/deploy_testnet.js",
     "orchestrate": "bash deploy_and_run_all.sh",
     "solver-daemon": "tsx solver_daemon_controller.ts",
     "create-tokens": "node create_tokens.js",
