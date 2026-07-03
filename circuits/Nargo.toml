@@ -2,7 +2,13 @@
 name = "prism_circuit"
 type = "bin"
 authors = ["PrismZK Core Developers <dev@prismzk.io>"]
-compiler_version = ">=0.31.0"
+compiler_version = ">=1.0.0-beta.22"
 
 [dependencies]
-std = { tag = "v0.31.0" }
+# Poseidon2 was moved out of the Noir stdlib (in beta.x, std::hash::poseidon2 is
+# pub(crate) — only poseidon2_permutation is exported). The user-facing
+# Poseidon2::hash lives in noir-lang/poseidon, vendored locally at lib/poseidon
+# (v0.3.0) so `noir_wasm` can compile without a git fetch. It bit-matches
+# barretenberg's poseidon2 (same round constants), which is what src/lib/prism_prover.ts
+# uses off-circuit for intents_root.
+poseidon = { path = "lib/poseidon" }

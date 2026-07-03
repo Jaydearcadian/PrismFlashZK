@@ -485,8 +485,8 @@ export default function App() {
           movementAmount
         };
         const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12;
-        const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
-        
+        const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+
         await ethereum.request({
           method: "personal_sign",
           params: [`Confirming PrismFlash Cross-VM swap for ${baseAmount} USDC with nullifier: ${sdkResult.nullifier}`, walletAddresses.base]
@@ -521,7 +521,7 @@ export default function App() {
       movementAmount
     };
     const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12;
-    const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+    const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
     setStepData(sdkResult);
 
     setLiveLogs(prev => [
@@ -550,14 +550,40 @@ export default function App() {
     setLiveError(null);
     setLiveLogs(prev => [
       ...prev,
-      "[PROVER] Initializing Noir Web-Assembly Circuit Proving backend...",
-      "[PROVER] Compiling circuits/src/main.nr...",
-      "[PROVER] Loading witness inputs and nullifier hash...",
-      "[PROVER] Computing BN254 Pairing constraints...",
-      "[PROVER] Witness generation complete! (95 constraints checked)",
-      "[PROVER] Generating UltraHonk Proof (size: 1,024 bytes)...",
-      "[PROVER] ZK-Proof generation completed successfully!"
+      "[PROVER] Initializing Noir/bb.js WebAssembly proving backend (client-side)...",
+      "[PROVER] Executing witness for circuits/src/main.nr — secret_key stays in the browser...",
     ]);
+
+    try {
+      // Real client-side UltraHonk proof: secret_key never leaves the browser.
+      const { prove } = await import("./lib/prism_prover");
+      const maxBlockHeight = stepData.maxBlockHeight;
+      const { proofHex, publicInputs, nullifier } = await prove(secretKey, nonce, stepData.intentsRoot, maxBlockHeight);
+      setLiveLogs(prev => [...prev, `[PROVER] UltraHonk proof generated (${publicInputs.length} public inputs). Requesting attestation...`]);
+
+      // Server-side attestor verifies the proof and signs the clearance the contract checks.
+      const attestRes = await fetch("/api/attest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proofHex, publicInputs, maxBlockHeight }),
+      });
+      const attestData = await attestRes.json();
+      if (!attestData.success) throw new Error(attestData.error || "attestation rejected");
+
+      setStepData((prev: any) => ({ ...prev, proofHex, attestationSignature: attestData.signature }));
+      setLiveLogs(prev => [
+        ...prev,
+        `[ATTESTOR] Proof verified. ed25519 clearance signed for nullifier ${String(nullifier).substring(0, 10)}...`,
+      ]);
+    } catch (err: any) {
+      // No compiled circuit / no CRS access / attestor down: continue in simulated clearance
+      // mode so the cockpit still demonstrates the flow (see /api/swap/clear fallback).
+      setLiveLogs(prev => [
+        ...prev,
+        `[PROVER] Real proving unavailable (${err.message || err}). Falling back to simulated clearance.`,
+      ]);
+    }
+
     setLiveStep("sign_clear");
   };
 
@@ -605,7 +631,7 @@ export default function App() {
         nullifier: stepData.nullifier,
         payloadCommitment: stepData.payloadCommitment,
         maxBlockHeight,
-        proof: stepData.proof,
+        attestationSignature: stepData.attestationSignature,
         routePlan: stepData.routePlan
       })
     });
@@ -655,8 +681,8 @@ export default function App() {
       };
       
       const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12; // Valid for 12 Stellar ledgers
-      
-      const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+
+      const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
       setStepData(sdkResult);
       await new Promise(r => setTimeout(r, 1200));
 
@@ -690,7 +716,6 @@ export default function App() {
           nullifier: sdkResult.nullifier,
           payloadCommitment: sdkResult.payloadCommitment,
           maxBlockHeight,
-          proof: sdkResult.proof,
           routePlan: sdkResult.routePlan
         })
       });
