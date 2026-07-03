@@ -95,18 +95,25 @@ async function deployBaseToken(name, symbol, supplyWei, recipient) {
 }
 
 // --- 2. Solana (SPL mint) ---
-async function deploySolanaToken(supplyBaseUnits, decimals) {
+async function deploySolanaToken(programIdStr, supplyBaseUnits, decimals) {
   console.log("\n[2/4] Minting SPL token on Solana Devnet...");
   const connection = new Connection(SOLANA_RPC, "confirmed");
   const secretKeyArray = JSON.parse(requireEnv("SOLANA_PRIVATE_KEY"));
   const payer = Keypair.fromSecretKey(Uint8Array.from(secretKeyArray));
 
   const mint = await createMint(connection, payer, payer.publicKey, null, decimals);
-  const tokenAccount = await getOrCreateAssociatedTokenAccount(connection, payer, mint, payer.publicKey);
-  await mintTo(connection, payer, mint, tokenAccount.address, payer, supplyBaseUnits);
 
-  console.log(`  └─ Solana mint: ${mint.toBase58()}, vault token account: ${tokenAccount.address.toBase58()}`);
-  return { mint: mint.toBase58(), vaultTokenAccount: tokenAccount.address.toBase58() };
+  // solana_vault::process_settlement pays out of the PDA-owned vault token account (seeds
+  // [b"prism_vault"]), NOT the payer's wallet. So mint the supply INTO that PDA's ATA — otherwise
+  // the on-chain vault is empty and every settlement fails. allowOwnerOffCurve=true because a PDA
+  // is off the ed25519 curve.
+  const programId = new PublicKey(programIdStr);
+  const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from("prism_vault")], programId);
+  const vaultAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, vaultPda, true);
+  await mintTo(connection, payer, mint, vaultAta.address, payer, supplyBaseUnits);
+
+  console.log(`  └─ Solana mint: ${mint.toBase58()}, vault PDA: ${vaultPda.toBase58()}, vault ATA: ${vaultAta.address.toBase58()}`);
+  return { mint: mint.toBase58(), vaultPda: vaultPda.toBase58(), vaultTokenAccount: vaultAta.address.toBase58() };
 }
 
 // --- 3. Movement (Aptos-Move managed coin over the prism_pusd marker module) ---
@@ -131,14 +138,20 @@ async function deployMovementToken(symbol, decimals, supplyBaseUnits) {
   }
 
   // Standard Aptos framework coin-issuance sequence (0x1::managed_coin, 0x1::coin) —
-  // requires contracts/move (including prism_pusd.move) to already be published under
-  // this same account, so PrismPUSD is a resolvable type.
+  // requires contracts/move (both prism_pusd.move AND movement_escrow.move) to already be
+  // published under this same account, so PrismPUSD is a resolvable type.
   await runEntry("0x1::managed_coin::initialize", [coinType], [Array.from(Buffer.from(symbol)), Array.from(Buffer.from(symbol)), decimals, true]);
   await runEntry("0x1::coin::register", [coinType], []);
   const mintTx = await runEntry("0x1::managed_coin::mint", [coinType], [prismAddr, supplyBaseUnits.toString()]);
 
-  console.log(`  └─ Movement coin type: ${coinType}, mint tx: ${mintTx}`);
-  return { coinModule: coinType, mintTx };
+  // Seed the escrow vault with the minted pUSD so process_payout has liquidity to draw from.
+  // initialize<PrismPUSD> creates the (generic) vault; fund_vault<PrismPUSD> moves the supply in.
+  const escrowFn = `${prismAddr}::movement_escrow`;
+  await runEntry(`${escrowFn}::initialize`, [coinType], [false, prismAddr]);
+  await runEntry(`${escrowFn}::fund_vault`, [coinType], [supplyBaseUnits.toString()]);
+
+  console.log(`  └─ Movement coin type: ${coinType}, mint tx: ${mintTx}, vault funded with ${supplyBaseUnits} base units`);
+  return { coinModule: coinType, escrow: `${escrowFn}::TokenVault`, mintTx };
 }
 
 // --- 4. Stellar (classic asset issuance) ---
@@ -223,9 +236,17 @@ async function main() {
 
   console.log(`Creating multi-VM token "${args.name}" (${args.symbol}), supply ${supply} split across 4 chains...`);
 
+  // Read the asset registry up front — deploySolanaToken needs the deployed solana_vault program
+  // id to derive the vault PDA it mints into.
+  const assetsPath = path.join(REPO_ROOT, "deployments", "prism-assets.local.json");
+  const examplePath = path.join(REPO_ROOT, "deployments", "prism-assets.example.json");
+  const assets = JSON.parse(fs.readFileSync(fs.existsSync(assetsPath) ? assetsPath : examplePath, "utf8"));
+  delete assets._comment;
+  const solanaProgramId = assets.chains["solana-devnet"].contracts.program;
+
   const evmWallet = new Wallet(requireEnv("EVM_PRIVATE_KEY"));
   const baseToken = await deployBaseToken(args.name, args.symbol, BigInt(perChainSupply) * 10n ** BigInt(decimals), evmWallet.address);
-  const solana = await deploySolanaToken(perChainSupply * 10 ** decimals, decimals);
+  const solana = await deploySolanaToken(solanaProgramId, perChainSupply * 10 ** decimals, decimals);
   const movement = await deployMovementToken(args.symbol, decimals, perChainSupply * 10 ** decimals);
   const stellar = await issueStellarAsset(args.symbol, perChainSupply);
 
@@ -236,15 +257,13 @@ async function main() {
     [perChainSupply, perChainSupply, perChainSupply, perChainSupply]
   );
 
-  const assetsPath = path.join(REPO_ROOT, "deployments", "prism-assets.local.json");
-  const examplePath = path.join(REPO_ROOT, "deployments", "prism-assets.example.json");
-  const assets = JSON.parse(fs.readFileSync(fs.existsSync(assetsPath) ? assetsPath : examplePath, "utf8"));
-  delete assets._comment;
   assets.stellarRegistry = registryContractId;
   assets.chains["base-sepolia"].contracts.token = baseToken;
   assets.chains["solana-devnet"].contracts.mint = solana.mint;
+  assets.chains["solana-devnet"].contracts.vaultPda = solana.vaultPda;
   assets.chains["solana-devnet"].contracts.vaultTokenAccount = solana.vaultTokenAccount;
   assets.chains["movement-porto"].contracts.coinModule = movement.coinModule;
+  assets.chains["movement-porto"].contracts.escrow = movement.escrow;
   assets.chains.stellar.contracts.clearinghouse = registryContractId;
   assets.chains.stellar.contracts.issuer = stellar.issuer;
   assets.chains.stellar.contracts.distributor = stellar.distributor;

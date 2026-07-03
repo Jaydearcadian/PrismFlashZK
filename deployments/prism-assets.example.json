@@ -26,6 +26,7 @@
       "contracts": {
         "program": "PrisMFLasH111111111111111111111111111111111",
         "mint": "SOLANA_PUSD_MINT_PENDING_DEPLOYMENT",
+        "vaultPda": "SOLANA_VAULT_PDA_PENDING_DEPLOYMENT",
         "vaultTokenAccount": "SOLANA_VAULT_TOKEN_ACCOUNT_PENDING_DEPLOYMENT"
       }
     },

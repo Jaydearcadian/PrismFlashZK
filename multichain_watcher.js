@@ -69,11 +69,14 @@ console.log(`  • Solana Vault Prog.  : ${SOLANA_VAULT_PROGRAM_ID ? `${GREEN}${
 console.log(`  • Stellar Soroban Esc.: ${STELLAR_ESCROW_ADDRESS ? `${GREEN}${STELLAR_ESCROW_ADDRESS}${RESET}` : `${YELLOW}Not Deployed (Simulated Gateway Active)${RESET}`}`);
 console.log(`  • Movement Porto Esc. : ${MOVEMENT_ESCROW_ADDRESS ? `${GREEN}${MOVEMENT_ESCROW_ADDRESS}${RESET}` : `${YELLOW}Not Deployed (Simulated Gateway Active)${RESET}`}`);
 
-// Minimal ABIs for Event Watching
+// Event ABIs — these MUST match the events actually emitted by contracts/solidity/BaseEscrow.sol,
+// or ethers silently never fires the listener. (They previously named Deposited/Settled/FraudDisputed,
+// which the contract does not emit.)
 const BaseEscrowABI = [
-  "event Deposited(address indexed user, uint256 amount, bytes32 indexed nullifier, uint256 maxBlockHeight, bytes32 payloadCommitment)",
-  "event Settled(bytes32 indexed nullifier, address indexed solver, bytes32 payloadCommitment)",
-  "event FraudDisputed(bytes32 indexed nullifier, address indexed watchdog, string reason)"
+  "event USDCLocked(address indexed depositor, bytes32 indexed nullifier, bytes32 payloadCommitment, uint256 amount)",
+  "event SettlementClaimed(bytes32 indexed nullifier, address indexed solver, string solanaTx, string movementTx, uint256 submitBlock)",
+  "event SettlementFinalized(bytes32 indexed nullifier, address indexed solver, uint256 amount)",
+  "event ClaimChallenged(bytes32 indexed nullifier, address indexed challenger, string reason)"
 ];
 
 // Initialize Real / Simulated providers
@@ -171,21 +174,34 @@ function startRealChainListeners() {
   if (baseProvider && BASE_ESCROW_ADDRESS) {
     console.log(`${CYAN}[WATCHER] Spawning real Solidity event listener on Base Sepolia...${RESET}`);
     const contract = new ethers.Contract(BASE_ESCROW_ADDRESS, BaseEscrowABI, baseProvider);
-    
-    contract.on("Deposited", (user, amount, nullifier, maxBlockHeight, payloadCommitment) => {
+
+    // USDCLocked(depositor, nullifier, payloadCommitment, amount) — args arrive in the event's
+    // declaration order, indexed and non-indexed alike. The on-chain lock does NOT carry the
+    // Soroban deadline or the per-chain destination amounts: those live in the intent bound by
+    // payloadCommitment, which the solver resolves off-chain (or from the ZK proof's public
+    // inputs), not from this event.
+    contract.on("USDCLocked", (depositor, nullifier, payloadCommitment, amount) => {
       const nullifierStr = ethers.hexlify(nullifier);
       if (!processedNullifiers.has(nullifierStr)) {
         processedNullifiers.add(nullifierStr);
-        console.log(`${GREEN}${BOLD}[EVM ETHERS LOG] Live BaseSepolia Lock Captured!${RESET}`);
+        console.log(`${GREEN}${BOLD}[EVM ETHERS LOG] Live Base Sepolia USDCLocked captured!${RESET}`);
         handleNewDeposit(nullifierStr, {
-          user,
-          amount: parseFloat(ethers.formatUnits(amount, 6)),
+          user: depositor,
+          amount: parseFloat(ethers.formatUnits(amount, 6)), // tUSDC has 6 decimals
           payloadCommitment: ethers.hexlify(payloadCommitment),
-          maxBlockHeight: Number(maxBlockHeight),
-          solanaAmount: 1.5, // Standard template values as fallback
-          movementAmount: 10
+          maxBlockHeight: undefined,   // resolved off-chain from the committed intent
+          solanaAmount: undefined,
+          movementAmount: undefined
         });
       }
+    });
+
+    // Settlement lifecycle — informational (the finalize/dispute state also drives the UI/registry).
+    contract.on("SettlementFinalized", (nullifier, solver, amount) => {
+      console.log(`${GREEN}[EVM] SettlementFinalized: ${ethers.hexlify(nullifier).substring(0, 12)}... released ${ethers.formatUnits(amount, 6)} tUSDC to ${solver}.${RESET}`);
+    });
+    contract.on("ClaimChallenged", (nullifier, challenger, reason) => {
+      console.log(`${RED}[EVM] ClaimChallenged: ${ethers.hexlify(nullifier).substring(0, 12)}... by ${challenger} — ${reason}${RESET}`);
     });
   }
 
