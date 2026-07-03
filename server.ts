@@ -1005,8 +1005,18 @@ function callRealSorobanClear(
     }
   });
 
-  // Vite development integration or static serving
+  // ROUTING MODEL: landing.html (the 3D warm landing) is the entry at "/", and its
+  // "Enter ZK Forge" button leads to the React cockpit, which lives at "/forge" (and any
+  // other non-"/" route). This holds in BOTH dev and prod so the two behave identically.
+  const staticRoot = process.cwd();
+  const landingPage = path.join(staticRoot, "landing.html");
+
+  // "/" always serves landing.html directly (self-contained: CDN tailwind + three.js).
+  app.get("/", (_req, res) => res.sendFile(landingPage));
+  app.get("/landing.html", (_req, res) => res.sendFile(landingPage));
+
   if (process.env.NODE_ENV !== "production") {
+    // Vite SPA fallback serves the React cockpit (index.html) for /forge and all other routes.
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -1018,29 +1028,10 @@ function callRealSorobanClear(
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    const staticRoot = process.cwd();
-
-    const mustServe = ["/zk-forge.html", "/launch-forge.html", "/landing.html", "/e2e-12phase.html", "/connect.html", "/proof.html", "/stellar.html", "/swap.html", "/deploy.html", "/mint.html", "/faucet.html", "/registry.html"];
-    for (const page of mustServe) {
-      const filePath = path.join(staticRoot, page);
-      app.get(page, (req, res) => {
-        if (fs.existsSync(filePath)) {
-          return res.sendFile(filePath);
-        }
-        return res.sendFile(path.join(distPath, "index.html"));
-      });
-    }
-
-    app.get("/", (req, res) => {
-      const landing = path.join(staticRoot, "landing.html");
-      if (fs.existsSync(landing)) return res.sendFile(landing);
-      return res.sendFile(path.join(distPath, "index.html"));
-    });
-
     app.use(express.static(distPath));
     app.use(express.static(staticRoot));
-
-    app.get("*", (req, res) => {
+    // Everything except "/" (handled above) → the React cockpit SPA, including /forge.
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

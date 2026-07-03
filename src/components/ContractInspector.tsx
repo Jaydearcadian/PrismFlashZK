@@ -29,18 +29,18 @@ export const ContractInspector: React.FC<ContractInspectorProps> = ({
 
   if (isSidebar) {
     return (
-      <div className="flex flex-col gap-3 p-4 bg-white dark:bg-zinc-900 transition-colors">
-        <div className="flex items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-zinc-800 pb-2">
+      <div className="flex flex-col gap-3 p-4 bg-white dark:bg-[#17151b] transition-colors">
+        <div className="flex items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#1e1b22] pb-2">
           <div>
             <h3 className="font-sans font-bold text-[10px] text-black dark:text-white uppercase tracking-tighter flex items-center gap-1.5">
-              <Code2 className="w-3.5 h-3.5 text-[#002FA7] dark:text-cyan-400" /> Blueprint Inspector
+              <Code2 className="w-3.5 h-3.5 text-[#d9a078] dark:text-[#d9a078]" /> Blueprint Inspector
             </h3>
-            <p className="text-[8px] text-[#666666] dark:text-zinc-400 font-mono uppercase tracking-tight">Inspect cryptographic source rules.</p>
+            <p className="text-[8px] text-[#666666] dark:text-[#a09ba8] font-mono uppercase tracking-tight">Inspect cryptographic source rules.</p>
           </div>
           
           <button
             onClick={handleCopyCode}
-            className="px-2 py-1 bg-white dark:bg-zinc-800 border border-[#E5E5E5] dark:border-zinc-800 hover:bg-[#FAFAFA] dark:hover:bg-zinc-700 text-[8.5px] font-mono flex items-center gap-1 text-black dark:text-white transition-all cursor-pointer"
+            className="px-2 py-1 bg-white dark:bg-[#1e1b22] border border-[#E5E5E5] dark:border-[#1e1b22] hover:bg-[#FAFAFA] dark:hover:bg-[#2d2833] text-[8.5px] font-mono flex items-center gap-1 text-black dark:text-white transition-all cursor-pointer"
           >
             {copied ? <Check className="w-3 h-3 text-[#00A86B]" /> : <Copy className="w-3 h-3" />}
             <span>{copied ? "COPIED" : "COPY"}</span>
@@ -55,8 +55,8 @@ export const ContractInspector: React.FC<ContractInspectorProps> = ({
               onClick={() => setActiveTab(tab.id)}
               className={`px-2 py-1 font-mono text-[9px] uppercase border transition-all cursor-pointer truncate ${
                 activeTab === tab.id
-                  ? "bg-[#FAFAFA] dark:bg-zinc-800 border-black dark:border-cyan-400 text-black dark:text-cyan-400 font-bold border-b-2"
-                  : "bg-white dark:bg-zinc-900 border-[#E5E5E5] dark:border-zinc-800 text-[#666666] dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                  ? "bg-[#FAFAFA] dark:bg-[#1e1b22] border-black dark:border-[#d9a078] text-black dark:text-[#d9a078] font-bold border-b-2"
+                  : "bg-white dark:bg-[#17151b] border-[#E5E5E5] dark:border-[#1e1b22] text-[#666666] dark:text-[#a09ba8] hover:text-black dark:hover:text-white"
               }`}
               title={tab.label}
             >
@@ -66,7 +66,7 @@ export const ContractInspector: React.FC<ContractInspectorProps> = ({
         </div>
 
         {/* Compact code block */}
-        <div className="bg-white dark:bg-zinc-950 border border-[#E5E5E5] dark:border-zinc-800 p-3 font-mono text-[9.5px] max-h-[380px] overflow-y-auto leading-relaxed text-black dark:text-zinc-300 scrollbar-thin">
+        <div className="bg-white dark:bg-[#141217] border border-[#E5E5E5] dark:border-[#1e1b22] p-3 font-mono text-[9.5px] max-h-[380px] overflow-y-auto leading-relaxed text-black dark:text-[#c9c3d1] scrollbar-thin">
           <pre className="whitespace-pre overflow-x-auto">{contractCode}</pre>
         </div>
       </div>
@@ -79,7 +79,7 @@ export const ContractInspector: React.FC<ContractInspectorProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E5E5] pb-3">
           <div>
             <h2 className="font-sans font-bold text-xs text-black uppercase tracking-tighter flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-[#002FA7]" /> 8.0 Direct Smart Contract Blueprint Inspector
+              <Code2 className="w-4 h-4 text-[#d9a078]" /> 8.0 Direct Smart Contract Blueprint Inspector
             </h2>
             <p className="text-[10px] text-[#666666] font-mono mt-0.5 uppercase tracking-tight">Inspect the exact Rust, Solidity, Move, and Noir source-of-truth cryptographic rules.</p>
           </div>

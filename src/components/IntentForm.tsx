@@ -121,7 +121,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
     <div className="border border-[#E5E5E5] rounded-none bg-white flex flex-col">
       <div className="p-4 bg-[#FAFAFA] border-b border-[#E5E5E5] flex items-center justify-between">
         <h2 className="font-sans font-bold text-xs text-black uppercase tracking-tighter flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#002FA7]" /> 2.0 Assemble User Intent Routing Path
+          <Zap className="w-4 h-4 text-[#d9a078]" /> 2.0 Assemble User Intent Routing Path
         </h2>
         <span className="text-[9px] text-[#666666] font-mono uppercase">Step 1 & 2 Initiator</span>
       </div>
@@ -130,13 +130,13 @@ export const IntentForm: React.FC<IntentFormProps> = ({
         {/* Intent Templates Dropdown Selector */}
         <div className="relative">
           <label className="block text-[10px] font-sans font-bold text-black uppercase tracking-tight mb-1.5 flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-[#002FA7]" /> Select Intent Preset Template
+            <Compass className="w-3.5 h-3.5 text-[#d9a078]" /> Select Intent Preset Template
           </label>
           <div className="relative">
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="w-full flex items-center justify-between bg-[#FAFAFA] border border-[#E5E5E5] px-3 py-2.5 text-left text-xs font-sans text-black focus:outline-none focus:border-[#002FA7] cursor-pointer"
+              className="w-full flex items-center justify-between bg-[#FAFAFA] border border-[#E5E5E5] px-3 py-2.5 text-left text-xs font-sans text-black focus:outline-none focus:border-[#d9a078] cursor-pointer"
             >
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                       {activeTemplate.badge}
                     </span>
                   ) : (
-                    <span className="px-1.5 py-0.5 text-[8.5px] font-mono border border-zinc-300 bg-zinc-50 text-zinc-600 uppercase tracking-wider">
+                    <span className="px-1.5 py-0.5 text-[8.5px] font-mono border border-[#c9c3d1] bg-[#f4f2f7] text-[#4a4451] uppercase tracking-wider">
                       Custom Route
                     </span>
                   )}
@@ -157,7 +157,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                   {activeTemplate ? activeTemplate.description : "Values have been customized by user input."}
                 </p>
               </div>
-              <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-4 h-4 text-[#6b6472] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
             </button>
 
             {dropdownOpen && (
@@ -173,7 +173,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-xs text-black flex items-center gap-1.5">
-                        {currentTemplateIndex === idx && <Sparkles className="w-3.5 h-3.5 text-[#002FA7]" />}
+                        {currentTemplateIndex === idx && <Sparkles className="w-3.5 h-3.5 text-[#d9a078]" />}
                         {tpl.name}
                       </span>
                       <span className={`px-1.5 py-0.5 text-[8px] font-mono border uppercase tracking-wider ${tpl.badgeColor}`}>
@@ -183,7 +183,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                     <p className="text-[9.5px] text-[#666666] leading-relaxed">
                       {tpl.description}
                     </p>
-                    <div className="flex items-center gap-3 text-[9px] font-mono text-zinc-500 mt-0.5 pt-0.5 border-t border-dashed border-zinc-100">
+                    <div className="flex items-center gap-3 text-[9px] font-mono text-[#6b6472] mt-0.5 pt-0.5 border-t border-dashed border-[#ebe8ef]">
                       <span>EVM: <strong className="text-black">{tpl.baseAmount} USDC</strong></span>
                       <span>•</span>
                       <span>Solana: <strong className="text-black">{tpl.solanaAmount} SOL</strong></span>
@@ -201,9 +201,9 @@ export const IntentForm: React.FC<IntentFormProps> = ({
           <label className="block text-[10px] font-sans font-bold text-black uppercase tracking-tight mb-1">
             Origin Asset Deposit (Base Sepolia)
           </label>
-          <div className="relative border border-[#E5E5E5] rounded-none focus-within:border-[#002FA7]">
+          <div className="relative border border-[#E5E5E5] rounded-none focus-within:border-[#d9a078]">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#666666]">
-              <Coins className="h-3.5 w-3.5 text-[#002FA7]" />
+              <Coins className="h-3.5 w-3.5 text-[#d9a078]" />
             </div>
             <input
               type="number"
@@ -223,7 +223,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
               Solana Target Venue
             </label>
             <div className="space-y-1.5">
-              <div className="relative border border-[#E5E5E5] focus-within:border-[#002FA7]">
+              <div className="relative border border-[#E5E5E5] focus-within:border-[#d9a078]">
                 <input
                   type="number"
                   value={solanaAmount}
@@ -239,7 +239,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                 type="text"
                 value={solanaRecipient}
                 onChange={(e) => setSolanaRecipient(e.target.value)}
-                className="block w-full border border-[#E5E5E5] bg-white py-1.5 px-2 text-[10px] font-mono text-[#666666] focus:border-[#002FA7] focus:outline-none focus:text-black rounded-none"
+                className="block w-full border border-[#E5E5E5] bg-white py-1.5 px-2 text-[10px] font-mono text-[#666666] focus:border-[#d9a078] focus:outline-none focus:text-black rounded-none"
                 placeholder="Solana Wallet Recipient"
               />
             </div>
@@ -250,7 +250,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
               Movement Target Venue
             </label>
             <div className="space-y-1.5">
-              <div className="relative border border-[#E5E5E5] focus-within:border-[#002FA7]">
+              <div className="relative border border-[#E5E5E5] focus-within:border-[#d9a078]">
                 <input
                   type="number"
                   value={movementAmount}
@@ -266,7 +266,7 @@ export const IntentForm: React.FC<IntentFormProps> = ({
                 type="text"
                 value={movementRecipient}
                 onChange={(e) => setMovementRecipient(e.target.value)}
-                className="block w-full border border-[#E5E5E5] bg-white py-1.5 px-2 text-[10px] font-mono text-[#666666] focus:border-[#002FA7] focus:outline-none focus:text-black rounded-none"
+                className="block w-full border border-[#E5E5E5] bg-white py-1.5 px-2 text-[10px] font-mono text-[#666666] focus:border-[#d9a078] focus:outline-none focus:text-black rounded-none"
                 placeholder="Move Escrow Address"
               />
             </div>

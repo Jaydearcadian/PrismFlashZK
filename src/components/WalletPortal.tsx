@@ -48,7 +48,7 @@ export const WalletPortal: React.FC<WalletPortalProps> = ({
   ];
 
   const accentButton =
-    "bg-white text-black hover:bg-black hover:text-white border-black dark:border-zinc-800 dark:bg-black dark:text-white dark:hover:bg-zinc-900";
+    "bg-white text-black hover:bg-black hover:text-white border-black dark:border-[#1e1b22] dark:bg-black dark:text-white dark:hover:bg-[#17151b]";
 
   return (
     <div

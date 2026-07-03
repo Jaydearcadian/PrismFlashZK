@@ -32,72 +32,75 @@ body {
   background: #999999;
 }
 
-/* HIGH-CONTRAST PITCH-DARK MODE SYSTEM OVERRIDES (SWISS GRID THEME) */
+/* ============================================================================
+   PRISM WARM-DARK THEME — matched to landing.html
+   Palette: bg #141217 · panel #17151b · card #1e1b22 · border #2d2833
+            grey text #a09ba8 · champagne accent #d9a078
+   The cockpit boots into this theme so it reads as one continuous world with
+   the landing page. These !important overrides win over Tailwind dark: utilities,
+   so they are the single source of truth for neutrals; the components were also
+   remapped to the same warm arbitrary values, so the two always agree.
+   ============================================================================ */
 html.dark, html.dark body {
-  background-color: #000000 !important;
+  background-color: #141217 !important;
   color: #FFFFFF !important;
 }
 
+/* Warm radial glow + subtle vignette behind the whole cockpit (echoes landing.html) */
+html.dark body {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(217, 160, 120, 0.07) 0%, rgba(20, 18, 23, 0) 55%),
+    radial-gradient(circle at 85% 90%, rgba(217, 160, 120, 0.04) 0%, rgba(20, 18, 23, 0) 50%);
+  background-attachment: fixed;
+}
+
 html.dark {
-  /* CSS Variables for custom SVG chart coloring dynamically */
-  --bg-card: #080808;
-  --border-color: #1F1F24;
+  --bg-card: #1e1b22;
+  --border-color: #2d2833;
 }
 
 html.dark .bg-white {
-  background-color: #080808 !important;
+  background-color: #1e1b22 !important;
 }
 
-html.dark .bg-[#F9F9F9] {
-  background-color: #000000 !important;
+html.dark .bg-\[\#F9F9F9\] {
+  background-color: #141217 !important;
 }
 
-html.dark .bg-[#FAFAFA] {
-  background-color: #0B0B0C !important;
+html.dark .bg-\[\#FAFAFA\] {
+  background-color: #17151b !important;
 }
 
-html.dark .bg-[#FAFAFA]/40 {
-  background-color: rgba(11, 11, 12, 0.4) !important;
+html.dark .bg-\[\#FAFAFA\]\/40 {
+  background-color: rgba(23, 21, 27, 0.4) !important;
 }
 
-html.dark .bg-[#FAFAFA]/20 {
-  background-color: rgba(11, 11, 12, 0.2) !important;
+html.dark .bg-\[\#FAFAFA\]\/20 {
+  background-color: rgba(23, 21, 27, 0.2) !important;
 }
 
-html.dark .bg-[#FAFAFA]/50 {
-  background-color: rgba(11, 11, 12, 0.5) !important;
+html.dark .bg-\[\#FAFAFA\]\/50 {
+  background-color: rgba(23, 21, 27, 0.5) !important;
 }
 
 html.dark .text-black {
   color: #FFFFFF !important;
 }
 
-html.dark .text-[#666666] {
-  color: #A1A1AA !important; /* Zinc-400 */
+html.dark .text-\[\#666666\] {
+  color: #a09ba8 !important;
 }
 
-html.dark .text-zinc-600 {
-  color: #D4D4D8 !important; /* Zinc-300 */
+html.dark .border-\[\#E5E5E5\] {
+  border-color: #2d2833 !important;
 }
 
-html.dark .text-zinc-500 {
-  color: #A1A1AA !important; /* Zinc-400 */
+html.dark .border-\[\#F5F5F5\] {
+  border-color: #221e28 !important;
 }
 
-html.dark .text-zinc-400 {
-  color: #71717A !important; /* Zinc-500 */
-}
-
-html.dark .border-[#E5E5E5] {
-  border-color: #1F1F24 !important;
-}
-
-html.dark .border-[#F5F5F5] {
-  border-color: #18181B !important;
-}
-
-html.dark .border-[#FAFAFA] {
-  border-color: #18181B !important;
+html.dark .border-\[\#FAFAFA\] {
+  border-color: #221e28 !important;
 }
 
 html.dark .border-black {
@@ -109,64 +112,64 @@ html.dark .border-dashed {
 }
 
 html.dark input, html.dark select, html.dark textarea {
-  background-color: #0C0C0E !important;
+  background-color: #17151b !important;
   color: #FFFFFF !important;
-  border-color: #27272A !important;
+  border-color: #2d2833 !important;
 }
 
 html.dark input::placeholder {
-  color: #52525B !important;
+  color: #6b6472 !important;
 }
 
-/* Custom PrismZK rose/champagne brand colors in dark mode */
-html.dark .text-[#d9a078] {
+/* PrismZK champagne brand accent in dark mode */
+html.dark .text-\[\#d9a078\] {
   color: #d9a078 !important;
 }
 
-html.dark .bg-[#d9a078] {
+html.dark .bg-\[\#d9a078\] {
   background-color: #d9a078 !important;
   border-color: #f3e0d3 !important;
 }
 
-html.dark .bg-[#d9a078]/10 {
+html.dark .bg-\[\#d9a078\]\/10 {
   background-color: rgba(217, 160, 120, 0.14) !important;
 }
 
-html.dark .border-[#d9a078]/20 {
+html.dark .border-\[\#d9a078\]\/20 {
   border-color: rgba(217, 160, 120, 0.28) !important;
 }
 
-html.dark .border-[#d9a078]/30 {
+html.dark .border-\[\#d9a078\]\/30 {
   border-color: rgba(217, 160, 120, 0.42) !important;
 }
 
-html.dark .border-[#d9a078] {
+html.dark .border-\[\#d9a078\] {
   border-color: #d9a078 !important;
 }
 
-html.dark .text-[#00A86B] {
-  color: #34D399 !important; /* Brighter emerald */
+html.dark .text-\[\#00A86B\] {
+  color: #34D399 !important; /* success emerald */
 }
 
-html.dark .bg-[#00A86B]/10 {
+html.dark .bg-\[\#00A86B\]\/10 {
   background-color: rgba(52, 211, 153, 0.15) !important;
 }
 
-html.dark .border-[#00A86B]/30 {
+html.dark .border-\[\#00A86B\]\/30 {
   border-color: rgba(52, 211, 153, 0.4) !important;
 }
 
-/* Scrollbar adjustment for dark mode */
+/* Scrollbar in warm dark */
 html.dark ::-webkit-scrollbar-track {
-  background: #080808 !important;
-  border-left: 1px solid #1F1F24 !important;
+  background: #141217 !important;
+  border-left: 1px solid #2d2833 !important;
 }
 
 html.dark ::-webkit-scrollbar-thumb {
-  background: #27272A !important;
+  background: #d9a078 !important;
+  border-radius: 3px;
 }
 
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3F3F46 !important;
+  background: #e8d5cc !important;
 }
-

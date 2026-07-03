@@ -187,12 +187,12 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
       .attr("x", margin.left + contentWidth / 2)
       .attr("y", height - 6)
       .attr("text-anchor", "middle")
-      .attr("class", "text-[8px] font-mono fill-zinc-500 uppercase tracking-tight")
+      .attr("class", "text-[8px] font-mono fill-[#6b6472] uppercase tracking-tight")
       .text("Solver Wallet Allocation & Routing Depth Percentage");
 
     // Colors
     const colorCapacity = darkMode ? "#2D2D30" : "#F3F4F6";
-    const colorAvailable = "#002FA7"; // Prism Deep Blue
+    const colorAvailable = "#d9a078"; // Prism Deep Blue
     const colorSimulated = "#FFA500"; // Simulation Impact (Amber)
     const colorExceeded = "#EF4444";  // Insufficient liquidity (Red)
 
@@ -248,7 +248,7 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
       g.append("text")
         .attr("x", x(Math.max(availablePct, 5)) + 6)
         .attr("y", yPos + barHeight / 2 + 3)
-        .attr("class", "text-[8.5px] font-mono fill-zinc-600 font-bold")
+        .attr("class", "text-[8.5px] font-mono fill-[#4a4451] font-bold")
         .text(`${d.available.toLocaleString()} ${d.symbol}`);
     });
 
@@ -275,27 +275,27 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
     <div id="liquidity-overview-card" className="border border-[#E5E5E5] rounded-none bg-white flex flex-col">
       <div className="p-4 bg-[#FAFAFA] border-b border-[#E5E5E5] flex items-center justify-between">
         <h2 className="font-sans font-bold text-xs text-black uppercase tracking-tighter flex items-center gap-2">
-          <Coins className="w-4 h-4 text-[#002FA7]" /> 6.0 Cross-Chain Liquidity Overview
+          <Coins className="w-4 h-4 text-[#d9a078]" /> 6.0 Cross-Chain Liquidity Overview
         </h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowTooltip(!showTooltip)}
-            className="text-zinc-400 hover:text-[#002FA7] cursor-pointer"
+            className="text-[#a09ba8] hover:text-[#d9a078] cursor-pointer"
             title="Protocol Liquidity Information"
           >
             <HelpCircle className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-1 font-mono text-[9px] bg-white border border-[#E5E5E5] px-2 py-0.5">
             <span className="text-[#666666] uppercase">Pool Cap:</span>
-            <span className="text-[#002FA7] font-bold">${totalTvlUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })} USD</span>
+            <span className="text-[#d9a078] font-bold">${totalTvlUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })} USD</span>
           </div>
         </div>
       </div>
 
       {showTooltip && (
-        <div className="p-3.5 bg-blue-50/50 border-b border-[#E5E5E5] text-[10px] text-zinc-700 leading-relaxed font-sans space-y-1.5 animate-fadeIn">
-          <div className="flex items-center gap-1.5 font-bold text-[#002FA7] uppercase text-[9.5px]">
+        <div className="p-3.5 bg-blue-50/50 border-b border-[#E5E5E5] text-[10px] text-[#2d2833] leading-relaxed font-sans space-y-1.5 animate-fadeIn">
+          <div className="flex items-center gap-1.5 font-bold text-[#d9a078] uppercase text-[9.5px]">
             <Info className="w-3.5 h-3.5" /> Solver Liquidity Pool Depth Architecture
           </div>
           <p>
@@ -316,7 +316,7 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
           <div
             key={idx}
             className={`border border-[#E5E5E5] p-2.5 space-y-1 transition-all ${
-              hoveredChain === c.name ? "bg-[#FAFAFA] border-[#002FA7]" : "bg-white"
+              hoveredChain === c.name ? "bg-[#FAFAFA] border-[#d9a078]" : "bg-white"
             }`}
             onMouseEnter={() => setHoveredChain(c.name)}
             onMouseLeave={() => setHoveredChain(null)}
@@ -325,17 +325,17 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
               <span className="text-[9px] font-sans font-bold text-[#666666] uppercase tracking-tight">
                 {c.name.split(" ")[0]} Pool
               </span>
-              <span className="text-[8.5px] font-mono text-zinc-400">
+              <span className="text-[8.5px] font-mono text-[#a09ba8]">
                 1 {c.symbol} = ${c.priceUsd}
               </span>
             </div>
             <div className="flex justify-between items-baseline pt-0.5">
               <span className="text-sm font-mono font-bold">
                 {c.solverBalance.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                <span className="text-[10px] font-sans text-zinc-500 font-medium ml-1">{c.symbol}</span>
+                <span className="text-[10px] font-sans text-[#6b6472] font-medium ml-1">{c.symbol}</span>
               </span>
             </div>
-            <div className="flex justify-between items-center text-[8.5px] font-mono pt-1 text-zinc-500 border-t border-dashed border-[#F0F0F0]">
+            <div className="flex justify-between items-center text-[8.5px] font-mono pt-1 text-[#6b6472] border-t border-dashed border-[#F0F0F0]">
               <span>Capacity: {c.capacity.toLocaleString()}</span>
               <span className={`font-bold ${c.utilization > 50 ? "text-amber-600" : "text-[#00A86B]"}`}>
                 {c.utilization.toFixed(0)}% Utilized
@@ -354,10 +354,10 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
       <div className="p-4 border-t border-[#E5E5E5] bg-[#FAFAFA] space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-sans font-bold text-[10px] text-black uppercase tracking-tight">
-            <Sliders className="w-3.5 h-3.5 text-[#002FA7]" /> Live Route Capacity Simulator
+            <Sliders className="w-3.5 h-3.5 text-[#d9a078]" /> Live Route Capacity Simulator
           </div>
           <div className="font-mono text-[10.5px] bg-white border border-[#E5E5E5] px-2 py-0.5 font-bold">
-            Simulated Swapping: <span className="text-[#002FA7]">{simulateAmount} USDC</span>
+            Simulated Swapping: <span className="text-[#d9a078]">{simulateAmount} USDC</span>
           </div>
         </div>
 
@@ -370,9 +370,9 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
             step="10"
             value={simulateAmount}
             onChange={(e) => setSimulateAmount(Number(e.target.value))}
-            className="w-full h-1.5 bg-[#E5E5E5] rounded-none appearance-none cursor-pointer accent-[#002FA7]"
+            className="w-full h-1.5 bg-[#E5E5E5] rounded-none appearance-none cursor-pointer accent-[#d9a078]"
           />
-          <div className="flex justify-between text-[8px] font-mono text-zinc-400 uppercase">
+          <div className="flex justify-between text-[8px] font-mono text-[#a09ba8] uppercase">
             <span>10 USDC (Min Route)</span>
             <span>750 USDC</span>
             <span>1,500 USDC (Max Route)</span>
@@ -387,13 +387,13 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
               ? "bg-red-50 border-red-300 text-red-900" 
               : "bg-white border-[#E5E5E5]"
           }`}>
-            <span className="block text-[8px] uppercase text-zinc-500 font-bold">Projected Base Lock</span>
+            <span className="block text-[8px] uppercase text-[#6b6472] font-bold">Projected Base Lock</span>
             <div className="flex items-center justify-between mt-1">
               <span className="font-bold">{reqBase} USDC</span>
               {isBaseExhausted ? (
                 <span className="text-[8px] font-bold text-red-600 bg-red-100 px-1">OVER DRAIN</span>
               ) : (
-                <span className="text-[8px] font-bold text-zinc-500">{(reqBase / baseSolverBalance * 100).toFixed(0)}% Load</span>
+                <span className="text-[8px] font-bold text-[#6b6472]">{(reqBase / baseSolverBalance * 100).toFixed(0)}% Load</span>
               )}
             </div>
           </div>
@@ -404,13 +404,13 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
               ? "bg-red-50 border-red-300 text-red-900" 
               : "bg-white border-[#E5E5E5]"
           }`}>
-            <span className="block text-[8px] uppercase text-zinc-500 font-bold">Projected Solana Payout</span>
+            <span className="block text-[8px] uppercase text-[#6b6472] font-bold">Projected Solana Payout</span>
             <div className="flex items-center justify-between mt-1">
               <span className="font-bold">{reqSolana} SOL</span>
               {isSolanaExhausted ? (
                 <span className="text-[8px] font-bold text-red-600 bg-red-100 px-1">OVER DRAIN</span>
               ) : (
-                <span className="text-[8px] font-bold text-zinc-500">{(Number(reqSolana) / solanaSolverBalance * 100).toFixed(0)}% Load</span>
+                <span className="text-[8px] font-bold text-[#6b6472]">{(Number(reqSolana) / solanaSolverBalance * 100).toFixed(0)}% Load</span>
               )}
             </div>
           </div>
@@ -421,13 +421,13 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
               ? "bg-red-50 border-red-300 text-red-900" 
               : "bg-white border-[#E5E5E5]"
           }`}>
-            <span className="block text-[8px] uppercase text-zinc-500 font-bold">Projected Movement Payout</span>
+            <span className="block text-[8px] uppercase text-[#6b6472] font-bold">Projected Movement Payout</span>
             <div className="flex items-center justify-between mt-1">
               <span className="font-bold">{reqMovement} MOVE</span>
               {isMovementExhausted ? (
                 <span className="text-[8px] font-bold text-red-600 bg-red-100 px-1">OVER DRAIN</span>
               ) : (
-                <span className="text-[8px] font-bold text-zinc-500">{(Number(reqMovement) / movementSolverBalance * 100).toFixed(0)}% Load</span>
+                <span className="text-[8px] font-bold text-[#6b6472]">{(Number(reqMovement) / movementSolverBalance * 100).toFixed(0)}% Load</span>
               )}
             </div>
           </div>
@@ -458,24 +458,24 @@ export const LiquidityOverview: React.FC<LiquidityOverviewProps> = ({ chains, da
       {/* CLEARINGHOUSE TOKEN DIRECTORY */}
       <div className="p-4 border-t border-[#E5E5E5] bg-white space-y-2">
         <h3 className="font-sans font-bold text-[10px] text-black uppercase tracking-tight flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-[#002FA7]" /> ZK Multi-Chain Clearinghouse Tokens
+          <Zap className="w-3.5 h-3.5 text-[#d9a078]" /> ZK Multi-Chain Clearinghouse Tokens
         </h3>
         <p className="text-[9px] text-[#666666] leading-relaxed">
-          Dynamic matching mock test tokens active across registered VM architectures. Create yours by running: <code className="font-mono bg-zinc-100 text-[#002FA7] px-1 py-0.5 rounded">npm run create-tokens</code>
+          Dynamic matching mock test tokens active across registered VM architectures. Create yours by running: <code className="font-mono bg-[#ebe8ef] text-[#d9a078] px-1 py-0.5 rounded">npm run create-tokens</code>
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
           {tokens.length === 0 ? (
-            <div className="text-[9.5px] text-zinc-400 italic">No registered clearinghouse tokens.</div>
+            <div className="text-[9.5px] text-[#a09ba8] italic">No registered clearinghouse tokens.</div>
           ) : (
             tokens.map((tok, idx) => (
               <div key={idx} className="border border-[#E5E5E5] p-2 bg-[#FAFAFA] flex flex-col justify-between space-y-1 font-mono text-[9.5px]">
                 <div className="flex items-center justify-between">
                   <span className="font-sans font-bold text-black">{tok.name}</span>
-                  <span className="bg-blue-100 text-[#002FA7] font-bold px-1.5 py-0.5 text-[8px] rounded uppercase">{tok.symbol}</span>
+                  <span className="bg-blue-100 text-[#d9a078] font-bold px-1.5 py-0.5 text-[8px] rounded uppercase">{tok.symbol}</span>
                 </div>
-                <div className="flex justify-between items-center text-zinc-500 text-[8.5px] pt-0.5 border-t border-dashed border-zinc-200">
+                <div className="flex justify-between items-center text-[#6b6472] text-[8.5px] pt-0.5 border-t border-dashed border-[#ddd8e2]">
                   <span>Supply: {tok.supply.toLocaleString()}</span>
-                  <span className="uppercase text-[8px] bg-zinc-200/60 px-1 font-sans">{tok.chains.join(" | ")}</span>
+                  <span className="uppercase text-[8px] bg-[#ddd8e2]/60 px-1 font-sans">{tok.chains.join(" | ")}</span>
                 </div>
               </div>
             ))

@@ -57,7 +57,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
             <span className="text-black font-sans font-bold text-base tracking-tight">
               {totalSettledAmount.toFixed(2)} USDC
             </span>
-            <span className="text-zinc-500 font-mono text-[9px]">
+            <span className="text-[#6b6472] font-mono text-[9px]">
               ({totalSettledCount} {totalSettledCount === 1 ? "intent" : "intents"})
             </span>
           </div>
@@ -66,10 +66,10 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
         <div className="flex flex-col space-y-0.5 border-t md:border-t-0 md:border-l border-[#E5E5E5] pt-1.5 md:pt-0 md:pl-3">
           <span className="text-[#666666] text-[8px] font-bold uppercase tracking-wider">AVERAGE SETTLEMENT TIME</span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[#002FA7] font-sans font-bold text-base tracking-tight uppercase">
+            <span className="text-[#d9a078] font-sans font-bold text-base tracking-tight uppercase">
               {avgTimeStr}
             </span>
-            <span className="text-zinc-500 font-mono text-[9px]">
+            <span className="text-[#6b6472] font-mono text-[9px]">
               {isHardwareEnforced ? "TEE Mode" : "Optimistic Mode"}
             </span>
           </div>
@@ -115,7 +115,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                       <span className="text-black font-bold font-mono text-[9px]">{nullifier.substring(0, 32)}...</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className={`px-1.5 py-0.5 text-[9px] font-bold border ${isFinalized ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-[#002FA7]/10 text-[#002FA7] border-[#002FA7]/20"}`}>
+                      <span className={`px-1.5 py-0.5 text-[9px] font-bold border ${isFinalized ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-[#d9a078]/10 text-[#d9a078] border-[#d9a078]/20"}`}>
                         {amount} USDC {isFinalized ? "SETTLED" : "LOCKED"}
                       </span>
                       <span className="px-1.5 py-0.5 bg-[#FAFAFA] text-[#666666] border border-[#E5E5E5] text-[9px]">
@@ -158,7 +158,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             ? "bg-emerald-600 text-white border-emerald-600" 
                             : isVerifying
                             ? "bg-amber-500 text-white border-amber-500 animate-pulse"
-                            : "bg-white text-[#999999] border-zinc-300"
+                            : "bg-white text-[#999999] border-[#c9c3d1]"
                         }`}>
                           {isVerified ? "✓" : "2"}
                         </div>
@@ -177,7 +177,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             ? "bg-red-600 text-white border-red-600"
                             : isVerified
                             ? "bg-amber-500 text-white border-amber-500 animate-pulse"
-                            : "bg-white text-[#999999] border-zinc-300"
+                            : "bg-white text-[#999999] border-[#c9c3d1]"
                         }`}>
                           {isFinalized ? "✓" : isDisputed ? "✗" : "3"}
                         </div>
@@ -193,16 +193,16 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
 
                   {/* Route status summary tags */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 text-center text-[9px]">
-                    <div className="border border-[#E5E5E5] bg-[#FAFAFA] p-1 text-[#002FA7] font-bold uppercase">
+                    <div className="border border-[#E5E5E5] bg-[#FAFAFA] p-1 text-[#d9a078] font-bold uppercase">
                       Base Lock: LOCKED
                     </div>
-                    <div className="border border-[#E5E5E5] bg-[#FAFAFA] p-1 text-[#002FA7] font-bold uppercase">
+                    <div className="border border-[#E5E5E5] bg-[#FAFAFA] p-1 text-[#d9a078] font-bold uppercase">
                       Soroban Verify: OK
                     </div>
-                    <div className={`border p-1 font-bold uppercase ${claim ? "border-[#E5E5E5] bg-[#FAFAFA] text-[#002FA7]" : "border-[#E5E5E5] bg-white text-[#999999]"}`}>
+                    <div className={`border p-1 font-bold uppercase ${claim ? "border-[#E5E5E5] bg-[#FAFAFA] text-[#d9a078]" : "border-[#E5E5E5] bg-white text-[#999999]"}`}>
                        Solana Fill: {claim ? "FILLED" : "FILLING"}
                      </div>
-                     <div className={`border p-1 font-bold uppercase ${claim ? "border-[#E5E5E5] bg-[#FAFAFA] text-[#002FA7]" : "border-[#E5E5E5] bg-white text-[#999999]"}`}>
+                     <div className={`border p-1 font-bold uppercase ${claim ? "border-[#E5E5E5] bg-[#FAFAFA] text-[#d9a078]" : "border-[#E5E5E5] bg-white text-[#999999]"}`}>
                        Movement Fill: {claim ? "FILLED" : "FILLING"}
                      </div>
                   </div>
@@ -210,7 +210,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                   {/* Explorer Links Panel */}
                   <div className="border border-[#E5E5E5] p-2 bg-[#FAFAFA]/40 space-y-1.5">
                     <div className="flex items-center gap-1.5 text-[8px] font-bold text-[#666666] uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 bg-[#002FA7] inline-block animate-pulse" />
+                      <span className="w-1.5 h-1.5 bg-[#d9a078] inline-block animate-pulse" />
                       On-Chain Explorer Telemetry Index
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 text-[9px]">
@@ -220,7 +220,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                           href={`https://sepolia.basescan.org/tx/${baseTx}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#002FA7] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
+                          className="text-[#d9a078] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
                           title="View Lock Transaction on Basescan"
                         >
                           {baseTx.substring(0, 10)}... ↗
@@ -232,7 +232,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                           href={`https://stellar.expert/explorer/testnet/tx/${stellarTx}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#002FA7] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
+                          className="text-[#d9a078] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
                           title="View Clearinghouse Verification on Stellar.expert"
                         >
                           {stellarTx.substring(0, 10)}... ↗
@@ -245,13 +245,13 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             href={`https://explorer.solana.com/tx/${claim.solanaTx}?cluster=devnet`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#002FA7] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
+                            className="text-[#d9a078] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
                             title="View Payout Disbursal on Solana Explorer"
                           >
                             {claim.solanaTx.substring(0, 10)}... ↗
                           </a>
                         ) : (
-                          <span className="text-zinc-400 font-bold uppercase text-[7.5px] italic flex items-center gap-1">
+                          <span className="text-[#a09ba8] font-bold uppercase text-[7.5px] italic flex items-center gap-1">
                             <span className="w-1 h-1 bg-amber-500 rounded-none animate-ping" />
                             PENDING
                           </span>
@@ -264,13 +264,13 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             href={`https://explorer.movementlabs.xyz/txn/${claim.movementTx}?network=testnet`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#002FA7] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
+                            className="text-[#d9a078] hover:underline flex items-center gap-0.5 font-bold font-mono text-[8px]"
                             title="View Payout Disbursal on Movement Explorer"
                           >
                             {claim.movementTx.substring(0, 10)}... ↗
                           </a>
                         ) : (
-                          <span className="text-zinc-400 font-bold uppercase text-[7.5px] italic flex items-center gap-1">
+                          <span className="text-[#a09ba8] font-bold uppercase text-[7.5px] italic flex items-center gap-1">
                             <span className="w-1 h-1 bg-amber-500 rounded-none animate-ping" />
                             PENDING
                           </span>
@@ -294,7 +294,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             CLAIM DISPUTED
                           </span>
                         ) : isHardwareEnforced ? (
-                          <span className="text-[#002FA7] uppercase font-bold">TEE IMMEDIATE FINALIZATION</span>
+                          <span className="text-[#d9a078] uppercase font-bold">TEE IMMEDIATE FINALIZATION</span>
                         ) : (
                           <span className="text-black uppercase">FROZEN COUNTDOWN: {Math.max(0, (claim.submitBlock + 150) - (chains?.base?.blockHeight || 0))} blocks</span>
                         )}
@@ -311,7 +311,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             href={`https://explorer.solana.com/tx/${claim.solanaTx}?cluster=devnet`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#002FA7] hover:underline font-mono text-[9px] font-bold flex items-center gap-0.5 truncate max-w-[200px]"
+                            className="text-[#d9a078] hover:underline font-mono text-[9px] font-bold flex items-center gap-0.5 truncate max-w-[200px]"
                             title="View on Solana Explorer (Devnet)"
                           >
                             {claim.solanaTx} ↗
@@ -323,7 +323,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             href={`https://explorer.movementlabs.xyz/txn/${claim.movementTx}?network=testnet`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#002FA7] hover:underline font-mono text-[9px] font-bold flex items-center gap-0.5 truncate max-w-[200px]"
+                            className="text-[#d9a078] hover:underline font-mono text-[9px] font-bold flex items-center gap-0.5 truncate max-w-[200px]"
                             title="View on Movement Explorer (Testnet)"
                           >
                             {claim.movementTx} ↗
@@ -346,7 +346,7 @@ export const SettlementRegistry: React.FC<SettlementRegistryProps> = ({
                             disabled={(chains?.base?.blockHeight || 0) < (claim.submitBlock + 150) && !isHardwareEnforced}
                             className={`flex-1 py-1 px-2 border text-[9px] font-bold uppercase rounded-none transition-all ${
                               ((chains?.base?.blockHeight || 0) >= (claim.submitBlock + 150) || isHardwareEnforced)
-                                ? "bg-[#002FA7] text-white border-[#002FA7] hover:bg-[#001D6E] cursor-pointer"
+                                ? "bg-[#d9a078] text-white border-[#d9a078] hover:bg-[#b8825f] cursor-pointer"
                                 : "bg-[#E5E5E5] text-[#999999] border-[#CCCCCC] cursor-not-allowed"
                             }`}
                           >

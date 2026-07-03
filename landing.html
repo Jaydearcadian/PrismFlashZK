@@ -55,8 +55,9 @@
             <a href="#proofs" data-nav="#proofs" class="hover:text-white transition duration-300">Proofs</a>
             <a href="#wallets" data-nav="#wallets" class="hover:text-white transition duration-300">Wallets</a>
         </nav>
-        <div class="flex items-center space-x-5 text-sm">
-            <button onclick="document.getElementById('walletModal').classList.remove('hidden')" class="border border-white/20 hover:border-white text-xs tracking-widest uppercase px-5 py-2.5 transition duration-300 bg-black/40 backdrop-blur-sm">Connect Wallet</button>
+        <div class="flex items-center space-x-3 text-sm">
+            <button onclick="document.getElementById('walletModal').classList.remove('hidden')" class="hidden sm:inline-block border border-white/20 hover:border-white text-xs tracking-widest uppercase px-5 py-2.5 transition duration-300 bg-black/40 backdrop-blur-sm">Connect Wallet</button>
+            <a href="/forge" class="bg-white hover:bg-brand-accent text-brand-bg text-xs tracking-widest uppercase font-semibold px-5 py-2.5 transition duration-300 shadow-lg hover:shadow-brand-accent/20">Enter ZK Forge</a>
         </div>
     </header>
 
@@ -66,9 +67,9 @@
             <h1 class="text-3xl md:text-6xl font-light tracking-widest leading-none text-white uppercase font-display">MULTI-VM<br>COORDINATION<br><span class="text-brand-accent/30 font-light">PLANES</span></h1>
             <p class="text-xs md:text-sm tracking-wide text-brand-grey leading-relaxed font-light font-sans max-w-md">Submit crosschain swaps, deploy omnitokens, and inspect unified liquidity and proof states from one pane.</p>
             <div class="flex flex-wrap gap-3 pt-2">
+                <a href="/forge" class="pointer-events-auto bg-white hover:bg-brand-accent text-brand-bg text-xs tracking-widest uppercase font-semibold px-7 py-3.5 transition duration-300 shadow-lg hover:shadow-brand-accent/20 flex items-center gap-2">Enter ZK Forge <span class="text-base leading-none">→</span></a>
                 <a href="#swap" data-nav="#swap" class="pointer-events-auto border border-white/10 hover:border-white/30 text-xs tracking-widest uppercase px-6 py-3.5 transition duration-300 bg-brand-bg/40 backdrop-blur-sm text-brand-grey hover:text-white">Crosschain Swap</a>
-                <a href="#registry" data-nav="#registry" class="pointer-events-auto border border-white/10 hover:border-white/30 text-xs tracking-widest uppercase px-6 py-3.5 transition duration-300 bg-brand-bg/40 backdrop-blur-sm text-brand-grey hover:text-white">OmniToken</a>
-                <a href="#liquidity" data-nav="#liquidity" class="pointer-events-auto bg-white hover:bg-brand-accent text-brand-bg text-xs tracking-widest uppercase font-semibold px-6 py-3.5 transition duration-300 shadow-lg hover:shadow-brand-accent/20">Liquidity</a>
+                <a href="#liquidity" data-nav="#liquidity" class="pointer-events-auto border border-white/10 hover:border-white/30 text-xs tracking-widest uppercase px-6 py-3.5 transition duration-300 bg-brand-bg/40 backdrop-blur-sm text-brand-grey hover:text-white">Liquidity</a>
             </div>
         </div>
     </main>

@@ -97,7 +97,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
     const contentWidth = width - margin.left - margin.right;
     const contentHeight = height - margin.top - margin.bottom;
 
-    const strokeColor = darkMode ? "#5C85FF" : "#002FA7";
+    const strokeColor = darkMode ? "#5C85FF" : "#d9a078";
 
     svg
       .attr("width", width)
@@ -314,7 +314,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F5F5F5] pb-2">
         <div>
           <span className="text-[10px] font-sans font-bold text-black uppercase tracking-tight flex items-center gap-1.5">
-            <BarChart3 className="w-3.5 h-3.5 text-[#002FA7]" /> 5.5 Cross-VM Settlement Analytics Engine
+            <BarChart3 className="w-3.5 h-3.5 text-[#d9a078]" /> 5.5 Cross-VM Settlement Analytics Engine
           </span>
           <p className="text-[9px] text-[#666666] font-mono mt-0.5 uppercase">Cryptographic Success Rate & Latency Aggregation</p>
         </div>
@@ -325,7 +325,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
           <select
             value={chainFilter}
             onChange={(e) => setChainFilter(e.target.value as any)}
-            className="bg-white border border-[#E5E5E5] text-[9px] font-mono text-black rounded-none px-1.5 py-0.5 uppercase focus:outline-none focus:border-[#002FA7] cursor-pointer"
+            className="bg-white border border-[#E5E5E5] text-[9px] font-mono text-black rounded-none px-1.5 py-0.5 uppercase focus:outline-none focus:border-[#d9a078] cursor-pointer"
           >
             <option value="all">ALL PAIRS</option>
             <option value="solana">BASE ➔ SOLANA</option>
@@ -341,7 +341,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
                 onClick={() => setTimeframe(t)}
                 className={`px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase cursor-pointer rounded-none transition-all ${
                   timeframe === t 
-                    ? "bg-[#002FA7] text-white" 
+                    ? "bg-[#d9a078] text-white" 
                     : "bg-white text-[#666666] hover:text-black"
                 }`}
               >
@@ -374,7 +374,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
           <span className="text-[8px] font-mono text-[#666666] uppercase">Avg Latency</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-sm font-bold font-mono text-black">{avgLatency}s</span>
-            <span className="text-[8px] text-[#002FA7] font-mono uppercase font-semibold">PROOF+FILL</span>
+            <span className="text-[8px] text-[#d9a078] font-mono uppercase font-semibold">PROOF+FILL</span>
           </div>
         </div>
 
@@ -391,9 +391,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ darkMode
 
       {/* D3 RENDERED CHART AREA */}
       <div ref={containerRef} className="border border-[#E5E5E5] p-2.5 bg-[#FAFAFA]/20 relative w-full overflow-hidden">
-        <div className="absolute top-2 right-2 flex items-center gap-2 font-mono text-[8px] text-zinc-400 select-none">
+        <div className="absolute top-2 right-2 flex items-center gap-2 font-mono text-[8px] text-[#a09ba8] select-none">
           <span className="flex items-center gap-1">
-            <span className={`w-2 h-0.5 ${darkMode ? "bg-[#5C85FF]" : "bg-[#002FA7]"} inline-block`} />
+            <span className={`w-2 h-0.5 ${darkMode ? "bg-[#5C85FF]" : "bg-[#d9a078]"} inline-block`} />
             SETTLEMENT RATE
           </span>
         </div>
