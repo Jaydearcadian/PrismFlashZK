@@ -24,6 +24,7 @@ import crypto from "crypto";
 import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import nacl from "tweetnacl";
+import base58 from "bs58";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..");
@@ -71,7 +72,15 @@ function have(cli) {
 }
 function run(cmd, args, opts = {}) {
   console.log(`${C.b}$ ${cmd} ${args.join(" ")}${C.x}`);
-  return execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts });
+  const stdio = opts.stdio || ["ignore", "pipe", "pipe"];
+  const input = opts.input ? Buffer.from(opts.input) : undefined;
+  return execFileSync(cmd, args, {
+    encoding: "utf8",
+    stdio,
+    input,
+    ...opts,
+    input: undefined,
+  });
 }
 
 const summary = [];
@@ -115,13 +124,45 @@ function deploySolana(env, d) {
     fs.writeFileSync(anchorToml, toml);
 
     // Use the funded .env payer for anchor (ANCHOR_WALLET), so we don't depend on ~/.config/solana.
+    // The .env value may be either a 64-byte JSON byte array (direct) OR a 32-byte base58 seed;
+    // we always convert to a proper JSON-array keypair file before invoking solana/anchor.
     const payerPath = path.join(dir, "target", "deploy", "prism-payer.json");
-    fs.writeFileSync(payerPath, env.SOLANA_PRIVATE_KEY); // JSON byte array
+    const payerJson = (() => {
+      const raw = (env.SOLANA_PRIVATE_KEY || "").trim();
+      try {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length === 64) return arr;
+      } catch { /* fall through to base58 decode */ }
+      try {
+        const seed = base58.decode(raw);
+        if (seed.length === 32) {
+          const sk = nacl.sign.keyPair.fromSeed(seed);
+          return Array.from(sk.secretKey);
+        }
+        if (seed.length === 64) return Array.from(seed);
+      } catch { /* ignore */ }
+      throw new Error("SOLANA_PRIVATE_KEY neither JSON byte array nor seed/secret base58");
+    })();
+    fs.writeFileSync(payerPath, JSON.stringify(payerJson));
     const anchorEnv = { ...process.env, ANCHOR_WALLET: payerPath };
 
     run("solana", ["config", "set", "--url", "devnet"]);
     run("anchor", ["build"], { cwd: dir, env: anchorEnv });
-    run("anchor", ["deploy", "--provider.cluster", "Devnet"], { cwd: dir, env: anchorEnv });
+
+    // Use solana-CLI's `program deploy` instead of `anchor deploy`. anchor deploy enforces
+    // upgrade-authority matching across all callers; for our orchestrator we want fresh
+    // program-id creation on first run, which solana program deploy handles gracefully.
+    run(
+      "solana",
+      [
+        "program", "deploy",
+        "--url", "devnet",
+        "--program-id", kpPath,
+        "--keypair", payerPath,
+        "target/deploy/solana_vault.so",
+      ],
+      { cwd: dir, env: anchorEnv }
+    );
 
     d.chains["solana-devnet"].contracts.program = progId;
     saveDeployments(d);
@@ -158,8 +199,20 @@ function deployStellar(env, d) {
   if (!env.STELLAR_PRIVATE_KEY) { console.log(warn("STELLAR_PRIVATE_KEY missing — run preflight. Skipping.")); return; }
   try {
     const dir = path.join(REPO_ROOT, "contracts", "soroban");
-    // Import the funded key as identity "deployer" (idempotent; ignore "already exists").
-    try { run("stellar", ["keys", "add", "deployer", "--secret-key", env.STELLAR_PRIVATE_KEY]); } catch { /* exists */ }
+    // `deployer` already registered from a prior session — only run `keys add` if missing.
+    const haveDeployer = execFileSync("bash", ["-lc", "stellar keys ls"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
+      .split("\n").map((s) => s.trim()).includes("deployer");
+    if (!haveDeployer) {
+      try {
+        run(
+          "stellar",
+          ["keys", "add", "deployer", "--secret-key", "--overwrite"],
+          { input: env.STELLAR_PRIVATE_KEY + "\n", stdio: ["pipe", "pipe", "pipe"] }
+        );
+      } catch (e) {
+        throw new Error(`stellar keys add deployer failed: ${e.message}`);
+      }
+    }
     run("stellar", ["contract", "build"], { cwd: dir });
     const rel = "target/wasm32v1-none/release";
 

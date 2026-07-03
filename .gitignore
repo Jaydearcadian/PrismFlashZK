@@ -9,3 +9,10 @@ coverage/
 target/
 deployments/*.local.json
 circuits/target/
+.agents/
+contracts/solidity/cache/
+contracts/solidity/out/
+contracts/soroban/Cargo.lock
+contracts/solana/Cargo.lock
+movement-aptos-core/
+skills-lock.json
