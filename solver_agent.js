@@ -93,12 +93,16 @@ async function executePayoutAndSettle(nullifier, deposit) {
   console.log(`  • Required MOVE: ${deposit.movementAmount}`);
 
   // 1. Solana Devnet real payout (if keypair & config is active)
+  // NOTE: this sends NATIVE SOL as a placeholder. A real spoke payout of the pUSD SPL token
+  // must instead invoke solana_vault::process_settlement against the funded vault PDA ATA
+  // (see contracts/solana + scripts/create_multivm_token.js) — that's the execution-layer wiring,
+  // separate from the claim-ABI fix below.
   let solanaTxHash = "SimSolTx" + Math.random().toString(36).substring(2, 14).toUpperCase();
   if (solanaKeypair && envVars["SOLANA_VAULT_PROGRAM_ID"]) {
     try {
       console.log(`${BLUE}[SOLVER_AGENT] Dispatching Solana transaction to Devnet...${RESET}`);
       const connection = new Connection("https://api.devnet.solana.com", "confirmed");
-      
+
       // Send standard SOL payout to recipient (simulated vault trigger or simple transfer for liquidity)
       const recipientPubkey = new PublicKey(deposit.solanaRecipient || solanaKeypair.publicKey);
       const transaction = new Transaction().add(
@@ -127,17 +131,22 @@ async function executePayoutAndSettle(nullifier, deposit) {
   if (evmWallet && BASE_ESCROW_ADDRESS) {
     try {
       console.log(`${BLUE}[SOLVER_AGENT] Submitting settlement claim to BaseEscrow.sol contract...${RESET}`);
+      // Must match BaseEscrow.sol's actual function: claimSettlement(nullifier, payloadCommitment,
+      // solanaTx, movementTx, signature). The old ABI named a nonexistent submitClaim and omitted
+      // the trailing `signature` arg, so the call always reverted. The signature is only checked in
+      // hardware-enforced (TEE) mode; in the optimistic path it's ignored, so we pass empty bytes.
       const escrowContract = new ethers.Contract(
         BASE_ESCROW_ADDRESS,
-        ["function submitClaim(bytes32 nullifier, bytes32 payloadCommitment, string solanaTx, string movementTx) external"],
+        ["function claimSettlement(bytes32 nullifier, bytes32 payloadCommitment, string solanaTx, string movementTx, bytes signature) external"],
         evmWallet
       );
-      
-      const tx = await escrowContract.submitClaim(
+
+      const tx = await escrowContract.claimSettlement(
         nullifier,
         deposit.payloadCommitment,
         solanaTxHash,
-        movementTxHash
+        movementTxHash,
+        "0x"
       );
       await tx.wait();
       evmTxHash = tx.hash;

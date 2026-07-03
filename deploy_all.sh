@@ -189,28 +189,43 @@ else
 fi
 
 
-# --- Step 5: Deploy Stellar Soroban Clearinghouse (Stellar Testnet) ---
+# --- Step 5: Deploy Stellar Soroban Contracts (Stellar Testnet) ---
+# contracts/soroban is a two-crate workspace: prism_verifier (the ZK-attestation
+# clearance contract) and master_state_registry (the liquidity/bonding-curve registry).
+# They must be separate WASM binaries — Soroban doesn't allow two #[contract] structs
+# with colliding exported function names in one binary, and both defined `initialize`.
 if [ "$HAS_STELLAR" = true ]; then
-    echo -e "\n${YELLOW}[5/5] Compiling and deploying Rust contract to Stellar Testnet...${NC_PLAIN}"
+    echo -e "\n${YELLOW}[5/5] Compiling and deploying Rust contracts to Stellar Testnet...${NC_PLAIN}"
     cd contracts/soroban
-    
-    echo -e "${BLUE}Compiling rust contract to optimized WASM target...${NC_PLAIN}"
+
+    echo -e "${BLUE}Compiling prism_verifier and master_state_registry to optimized WASM...${NC_PLAIN}"
     stellar contract build
-    
+
     # Generate keys if they do not exist
     if ! stellar keys address deployer &> /dev/null; then
         echo -e "${BLUE}Generating Stellar keypair: deployer...${NC_PLAIN}"
         stellar keys generate --global deployer --network testnet
     fi
-    
-    echo -e "${BLUE}Deploying to Stellar Testnet...${NC_PLAIN}"
-    ST_DEPLOY=$(stellar contract deploy \
-      --wasm target/wasm32-unknown-unknown/release/prism_soroban_escrow.wasm \
+
+    echo -e "${BLUE}Deploying prism_verifier to Stellar Testnet...${NC_PLAIN}"
+    VERIFIER_DEPLOY=$(stellar contract deploy \
+      --wasm target/wasm32v1-none/release/prism_verifier.wasm \
       --source deployer \
       --network testnet)
-      
-    echo -e "${GREEN}✔ Stellar Soroban Contract deployed successfully!${NC_PLAIN}"
-    echo -e "Contract Address: ${GREEN}$ST_DEPLOY${NC_PLAIN}"
+    echo -e "${GREEN}✔ prism_verifier deployed!${NC_PLAIN} Contract Address: ${GREEN}$VERIFIER_DEPLOY${NC_PLAIN}"
+    echo -e "${YELLOW}  Remember to call its initialize(attestor_key) once before use.${NC_PLAIN}"
+
+    # master_state_registry is uploaded (not instantiated) here — it's a singleton-per-
+    # instance contract, so scripts/create_multivm_token.js instantiates a fresh copy per
+    # token later via `stellar contract deploy --wasm-hash <hash>` using this upload.
+    echo -e "${BLUE}Uploading master_state_registry WASM (no instance yet — one per token)...${NC_PLAIN}"
+    REGISTRY_WASM_HASH=$(stellar contract upload \
+      --wasm target/wasm32v1-none/release/master_state_registry.wasm \
+      --source deployer \
+      --network testnet)
+    echo -e "${GREEN}✔ master_state_registry WASM uploaded!${NC_PLAIN} WASM Hash: ${GREEN}$REGISTRY_WASM_HASH${NC_PLAIN}"
+    echo -e "${YELLOW}  Save this hash — scripts/create_multivm_token.js needs it to instantiate a registry per token.${NC_PLAIN}"
+
     cd ../..
 else
     echo -e "\n${YELLOW}[5/5] Stellar Testnet deployment skipped (Stellar CLI missing).${NC_PLAIN}"

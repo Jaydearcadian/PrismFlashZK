@@ -79,20 +79,20 @@ export const IntentTab: React.FC<IntentTabProps> = ({
   handleFinalize,
 }) => {
   return (
-    <div className="flex flex-col divide-y divide-[#E5E5E5] dark:divide-zinc-800 bg-white dark:bg-zinc-900">
+    <div className="flex flex-col divide-y divide-[#E5E5E5] dark:divide-[#1e1b22] bg-white dark:bg-[#17151b]">
       {/* Intent Header */}
-      <div className="p-4 bg-[#FAFAFA] dark:bg-zinc-950 flex items-center justify-between border-b border-[#E5E5E5] dark:border-zinc-800">
+      <div className="p-4 bg-[#FAFAFA] dark:bg-[#141217] flex items-center justify-between border-b border-[#E5E5E5] dark:border-[#1e1b22]">
         <div>
           <h2 className="font-sans font-bold text-xs text-black dark:text-white uppercase tracking-tighter">CROSS-CHAIN INTENT SETTLEMENT GATEWAY</h2>
-          <p className="text-[9px] text-[#666666] dark:text-zinc-400 font-mono uppercase tracking-tight">Formulate, prove, and dispatch multi-VM settlement transactions</p>
+          <p className="text-[9px] text-[#666666] dark:text-[#a09ba8] font-mono uppercase tracking-tight">Formulate, prove, and dispatch multi-VM settlement transactions</p>
         </div>
       </div>
 
-      <div className="p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white dark:bg-zinc-900 transition-colors">
+      <div className="p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white dark:bg-[#17151b] transition-colors">
         {/* Form Inputs */}
         <div className="lg:col-span-6 space-y-4">
-          <h3 className="text-[10px] font-bold font-sans uppercase text-black dark:text-white border-b pb-1 dark:border-zinc-800 flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-[#002FA7] dark:text-cyan-400" /> Specify Asset Quantities & Recipients
+          <h3 className="text-[10px] font-bold font-sans uppercase text-black dark:text-white border-b pb-1 dark:border-[#1e1b22] flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-[#d9a078] dark:text-[#d9a078]" /> Specify Asset Quantities & Recipients
           </h3>
           <IntentForm
             baseAmount={baseAmount}
@@ -114,11 +114,11 @@ export const IntentTab: React.FC<IntentTabProps> = ({
 
         {/* Pipeline Controls */}
         <div className="lg:col-span-6 space-y-4">
-          <h3 className="text-[10px] font-bold font-sans uppercase text-black dark:text-white border-b pb-1 dark:border-zinc-800 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-[#002FA7] dark:text-cyan-400" /> Dispatch Execution Pipeline
+          <h3 className="text-[10px] font-bold font-sans uppercase text-black dark:text-white border-b pb-1 dark:border-[#1e1b22] flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-[#d9a078] dark:text-[#d9a078]" /> Dispatch Execution Pipeline
           </h3>
           
-          <div className="space-y-4 bg-[#FAFAFA] dark:bg-zinc-950/40 border border-[#E5E5E5] dark:border-zinc-800 p-4">
+          <div className="space-y-4 bg-[#FAFAFA] dark:bg-[#141217]/40 border border-[#E5E5E5] dark:border-[#1e1b22] p-4">
             {errorMessage && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 p-2.5 text-[10px] font-mono flex items-center gap-2 rounded-none">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 animate-bounce" />
@@ -129,7 +129,7 @@ export const IntentTab: React.FC<IntentTabProps> = ({
             {isLiveMode ? (
               /* LIVE ON-CHAIN GATEWAY */
               <div className="space-y-3.5">
-                <div className="flex items-center justify-between border-b border-[#E5E5E5] dark:border-zinc-800 pb-2">
+                <div className="flex items-center justify-between border-b border-[#E5E5E5] dark:border-[#1e1b22] pb-2">
                   <span className="font-mono text-[9px] font-bold text-amber-700 dark:text-amber-500 flex items-center gap-1.5">
                     <Globe className="w-3.5 h-3.5" /> LIVE ON-CHAIN PIPELINE
                   </span>
@@ -140,7 +140,7 @@ export const IntentTab: React.FC<IntentTabProps> = ({
 
                 {liveStep === "idle" ? (
                   <div className="space-y-2.5">
-                    <p className="text-[9.5px] text-[#666666] dark:text-zinc-400 uppercase leading-relaxed font-mono">
+                    <p className="text-[9.5px] text-[#666666] dark:text-[#a09ba8] uppercase leading-relaxed font-mono">
                       Operating in <span className="text-amber-700 dark:text-amber-400 font-bold">Live Testnet Mode</span>. This will request real wallet approvals (Metamask/Freighter), compile local witness parameters, and submit verified transactions.
                     </p>
                     <button
@@ -155,19 +155,19 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                   <div className="space-y-3">
                     {/* Step progress tracker bar */}
                     <div className="grid grid-cols-5 gap-1 text-center text-[7.5px] font-bold font-mono">
-                      <div className={`p-1 border ${liveStep === "wallet_check" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-zinc-800 text-zinc-400 border-[#E5E5E5] dark:border-zinc-700"}`}>
+                      <div className={`p-1 border ${liveStep === "wallet_check" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#a09ba8] border-[#E5E5E5] dark:border-[#2d2833]"}`}>
                         1. WALLETS
                       </div>
-                      <div className={`p-1 border ${liveStep === "sign_lock" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-zinc-800 text-zinc-400 border-[#E5E5E5] dark:border-zinc-700"}`}>
+                      <div className={`p-1 border ${liveStep === "sign_lock" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#a09ba8] border-[#E5E5E5] dark:border-[#2d2833]"}`}>
                         2. LOCK
                       </div>
-                      <div className={`p-1 border ${liveStep === "noir_prove" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-zinc-800 text-zinc-400 border-[#E5E5E5] dark:border-zinc-700"}`}>
+                      <div className={`p-1 border ${liveStep === "noir_prove" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#a09ba8] border-[#E5E5E5] dark:border-[#2d2833]"}`}>
                         3. PROVE
                       </div>
-                      <div className={`p-1 border ${liveStep === "sign_clear" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-zinc-800 text-zinc-400 border-[#E5E5E5] dark:border-zinc-700"}`}>
+                      <div className={`p-1 border ${liveStep === "sign_clear" ? "bg-amber-600 text-white border-amber-600" : "bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#a09ba8] border-[#E5E5E5] dark:border-[#2d2833]"}`}>
                         4. CLEAR
                       </div>
-                      <div className={`p-1 border ${liveStep === "finalized" ? "bg-emerald-600 text-white border-emerald-600" : "bg-[#FAFAFA] dark:bg-zinc-800 text-zinc-400 border-[#E5E5E5] dark:border-zinc-700"}`}>
+                      <div className={`p-1 border ${liveStep === "finalized" ? "bg-emerald-600 text-white border-emerald-600" : "bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#a09ba8] border-[#E5E5E5] dark:border-[#2d2833]"}`}>
                         5. COMPLETED
                       </div>
                     </div>
@@ -178,7 +178,7 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                           <AlertTriangle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 animate-bounce" />
                           <span>{liveError.title}</span>
                         </div>
-                        <p className="text-[9px] text-[#555555] dark:text-zinc-300 leading-relaxed font-sans">{liveError.message}</p>
+                        <p className="text-[9px] text-[#555555] dark:text-[#c9c3d1] leading-relaxed font-sans">{liveError.message}</p>
                         <div className="bg-red-50 dark:bg-red-950/20 border-l-2 border-red-500 p-2 text-red-900 dark:text-red-300 space-y-0.5 font-sans">
                           <strong className="block text-[8px] uppercase tracking-wider text-red-800 dark:text-red-400 font-bold">REQUIRED ACTION:</strong>
                           <p className="text-[9px] leading-relaxed">{liveError.instruction}</p>
@@ -200,23 +200,23 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                               setLiveError(null);
                               setLiveStep("idle");
                             }}
-                            className="py-1.5 px-3 border border-[#E5E5E5] dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-black dark:text-white font-sans text-[9px] font-bold uppercase rounded-none cursor-pointer"
+                            className="py-1.5 px-3 border border-[#E5E5E5] dark:border-[#1e1b22] bg-white dark:bg-[#1e1b22] hover:bg-[#f4f2f7] dark:hover:bg-[#2d2833] text-black dark:text-white font-sans text-[9px] font-bold uppercase rounded-none cursor-pointer"
                           >
                             Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="border border-[#E5E5E5] dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-2.5 font-mono text-[9.5px]">
+                      <div className="border border-[#E5E5E5] dark:border-[#1e1b22] bg-white dark:bg-[#141217] p-3 space-y-2.5 font-mono text-[9.5px]">
                         {liveStep === "wallet_check" && (
                           <div className="space-y-1.5">
                             <span className="font-bold text-black dark:text-white uppercase text-[9px] block">Step 1: Check Wallet Connectors</span>
-                            <p className="text-[9px] text-zinc-500 leading-relaxed">
+                            <p className="text-[9px] text-[#6b6472] leading-relaxed">
                               Checking web browser extensions (EVM MetaMask/Coinbase, Stellar Freighter, Solana Phantom, Movement Sui-based).
                             </p>
                             <button
                               onClick={handleLiveStepWalletCheck}
-                              className="w-full py-1.5 bg-black dark:bg-cyan-500 hover:bg-zinc-900 dark:hover:bg-cyan-400 text-white dark:text-black font-bold uppercase text-[9px] cursor-pointer"
+                              className="w-full py-1.5 bg-black dark:bg-[#c88f68] hover:bg-[#17151b] dark:hover:bg-[#d9a078] text-white dark:text-black font-bold uppercase text-[9px] cursor-pointer"
                             >
                               Scan Extensions & Proceed
                             </button>
@@ -226,10 +226,10 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                         {liveStep === "sign_lock" && (
                           <div className="space-y-1.5">
                             <span className="font-bold text-black dark:text-white uppercase text-[9px] block">Step 2: Sign Base Escrow lock</span>
-                            <div className="text-[8.5px] space-y-0.5 text-zinc-500 bg-zinc-50 dark:bg-zinc-900 p-2 border dark:border-zinc-800">
-                              <div><strong className="text-black dark:text-zinc-300">Contract:</strong> {liveContracts.baseEscrow}</div>
-                              <div><strong className="text-black dark:text-zinc-300">Locking:</strong> {baseAmount} USDC</div>
-                              <div><strong className="text-black dark:text-zinc-300">Est. Fee:</strong> {estimatedBaseGasEth} ETH</div>
+                            <div className="text-[8.5px] space-y-0.5 text-[#6b6472] bg-[#f4f2f7] dark:bg-[#17151b] p-2 border dark:border-[#1e1b22]">
+                              <div><strong className="text-black dark:text-[#c9c3d1]">Contract:</strong> {liveContracts.baseEscrow}</div>
+                              <div><strong className="text-black dark:text-[#c9c3d1]">Locking:</strong> {baseAmount} USDC</div>
+                              <div><strong className="text-black dark:text-[#c9c3d1]">Est. Fee:</strong> {estimatedBaseGasEth} ETH</div>
                             </div>
                             <button
                               onClick={handleLiveStepSignLock}
@@ -243,12 +243,12 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                         {liveStep === "noir_prove" && (
                           <div className="space-y-1.5">
                             <span className="font-bold text-black dark:text-white uppercase text-[9px] block">Step 3: ZK Witness Compilation</span>
-                            <p className="text-[9px] text-zinc-500 leading-relaxed">
+                            <p className="text-[9px] text-[#6b6472] leading-relaxed">
                               Compiling UltraHonk zero-knowledge proof. Translating private parameters securely.
                             </p>
                             <button
                               onClick={handleLiveStepNoirProve}
-                              className="w-full py-1.5 bg-black dark:bg-zinc-800 hover:bg-zinc-900 text-white font-bold uppercase text-[9px] cursor-pointer"
+                              className="w-full py-1.5 bg-black dark:bg-[#1e1b22] hover:bg-[#17151b] text-white font-bold uppercase text-[9px] cursor-pointer"
                             >
                               Run client-side prover (1,024 bytes)
                             </button>
@@ -258,9 +258,9 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                         {liveStep === "sign_clear" && (
                           <div className="space-y-1.5">
                             <span className="font-bold text-black dark:text-white uppercase text-[9px] block">Step 4: Prove Clearance on Soroban</span>
-                            <div className="text-[8.5px] space-y-0.5 text-zinc-500 bg-zinc-50 dark:bg-zinc-900 p-2 border dark:border-zinc-800">
-                              <div><strong className="text-black dark:text-zinc-300">Clearinghouse:</strong> {liveContracts.stellarClearinghouse}</div>
-                              <div><strong className="text-black dark:text-zinc-300">ZK Cryptography:</strong> UltraHonk Proof (BN254 curve)</div>
+                            <div className="text-[8.5px] space-y-0.5 text-[#6b6472] bg-[#f4f2f7] dark:bg-[#17151b] p-2 border dark:border-[#1e1b22]">
+                              <div><strong className="text-black dark:text-[#c9c3d1]">Clearinghouse:</strong> {liveContracts.stellarClearinghouse}</div>
+                              <div><strong className="text-black dark:text-[#c9c3d1]">ZK Cryptography:</strong> UltraHonk Proof (BN254 curve)</div>
                             </div>
                             <button
                               onClick={handleLiveStepSignClear}
@@ -274,14 +274,14 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                         {liveStep === "finalized" && (
                           <div className="py-1 text-center space-y-1">
                             <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase text-[10px] block animate-pulse">✓ CROSS-CHAIN ROUTING FINALIZED</span>
-                            <p className="text-[9px] text-[#666666] dark:text-zinc-400">Assets cleared and disbursed dynamically.</p>
+                            <p className="text-[9px] text-[#666666] dark:text-[#a09ba8]">Assets cleared and disbursed dynamically.</p>
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* Live step logs */}
-                    <div className="bg-black text-emerald-400 p-2 font-mono text-[8px] h-[75px] overflow-y-auto border border-zinc-800 select-all rounded-none leading-normal">
+                    <div className="bg-black text-emerald-400 p-2 font-mono text-[8px] h-[75px] overflow-y-auto border border-[#1e1b22] select-all rounded-none leading-normal">
                       {liveLogs.map((log, i) => (
                         <div key={i} className="truncate">{log}</div>
                       ))}
@@ -292,7 +292,7 @@ export const IntentTab: React.FC<IntentTabProps> = ({
             ) : (
               /* DEMO SANDBOX SWAP SEQUENCE */
               <div className="space-y-3 font-mono text-[9.5px]">
-                <p className="text-zinc-500 leading-relaxed uppercase">
+                <p className="text-[#6b6472] leading-relaxed uppercase">
                   Executing routing swap on the lightning-fast Simulated Sandbox.
                 </p>
                 <button
@@ -300,8 +300,8 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                   disabled={swapStep !== "idle"}
                   className={`w-full py-2.5 px-4 rounded-none font-sans text-xs font-bold uppercase tracking-tight flex items-center justify-center gap-2 border ${
                     swapStep !== "idle"
-                      ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border-zinc-200 dark:border-zinc-700 cursor-not-allowed"
-                      : "bg-[#002FA7] hover:bg-[#001D6E] text-white border-[#002FA7] cursor-pointer"
+                      ? "bg-[#ebe8ef] dark:bg-[#1e1b22] text-[#a09ba8] dark:text-[#6b6472] border-[#ddd8e2] dark:border-[#2d2833] cursor-not-allowed"
+                      : "bg-[#d9a078] hover:bg-[#b8825f] text-white border-[#d9a078] cursor-pointer"
                   }`}
                 >
                   <Zap className="w-4 h-4 text-white" />
@@ -309,23 +309,23 @@ export const IntentTab: React.FC<IntentTabProps> = ({
                 </button>
 
                 {swapStep !== "idle" && (
-                  <div className="border border-[#E5E5E5] dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-2 text-[9.5px]">
-                    <div className="flex justify-between border-b dark:border-zinc-800 pb-1 font-bold">
-                      <span className="text-[#666666] dark:text-zinc-400">PIPELINE OPERATIONS</span>
-                      <span className="text-[#002FA7] dark:text-cyan-400 animate-pulse">{swapStep.toUpperCase()} ACTIVE</span>
+                  <div className="border border-[#E5E5E5] dark:border-[#1e1b22] bg-white dark:bg-[#141217] p-3 space-y-2 text-[9.5px]">
+                    <div className="flex justify-between border-b dark:border-[#1e1b22] pb-1 font-bold">
+                      <span className="text-[#666666] dark:text-[#a09ba8]">PIPELINE OPERATIONS</span>
+                      <span className="text-[#d9a078] dark:text-[#d9a078] animate-pulse">{swapStep.toUpperCase()} ACTIVE</span>
                     </div>
                     <div className="space-y-1 text-[8.5px]">
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 ${swapStep !== "sdk" ? "bg-[#00A86B]" : "bg-[#002FA7] animate-ping"}`} />
-                        <span className={swapStep === "sdk" ? "text-black dark:text-zinc-100 font-bold" : "text-zinc-400"}>1. Noir SDK: Compile witness parameter proof</span>
+                        <span className={`w-1.5 h-1.5 ${swapStep !== "sdk" ? "bg-[#00A86B]" : "bg-[#d9a078] animate-ping"}`} />
+                        <span className={swapStep === "sdk" ? "text-black dark:text-[#ebe8ef] font-bold" : "text-[#a09ba8]"}>1. Noir SDK: Compile witness parameter proof</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 ${swapStep === "clear" || swapStep === "success" ? "bg-[#00A86B]" : swapStep === "lock" ? "bg-[#002FA7] animate-ping" : "bg-[#E5E5E5] dark:bg-zinc-800"}`} />
-                        <span className={swapStep === "lock" ? "text-black dark:text-zinc-100 font-bold" : "text-zinc-400"}>2. Base Escrow: Lock origin {baseAmount} USDC, write commitment</span>
+                        <span className={`w-1.5 h-1.5 ${swapStep === "clear" || swapStep === "success" ? "bg-[#00A86B]" : swapStep === "lock" ? "bg-[#d9a078] animate-ping" : "bg-[#E5E5E5] dark:bg-[#1e1b22]"}`} />
+                        <span className={swapStep === "lock" ? "text-black dark:text-[#ebe8ef] font-bold" : "text-[#a09ba8]"}>2. Base Escrow: Lock origin {baseAmount} USDC, write commitment</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 ${swapStep === "success" ? "bg-[#00A86B]" : swapStep === "clear" ? "bg-[#002FA7] animate-ping" : "bg-[#E5E5E5] dark:bg-zinc-800"}`} />
-                        <span className={swapStep === "clear" ? "text-black dark:text-zinc-100 font-bold" : "text-zinc-400"}>3. Soroban Verifier: Validate Proof, claim clearance</span>
+                        <span className={`w-1.5 h-1.5 ${swapStep === "success" ? "bg-[#00A86B]" : swapStep === "clear" ? "bg-[#d9a078] animate-ping" : "bg-[#E5E5E5] dark:bg-[#1e1b22]"}`} />
+                        <span className={swapStep === "clear" ? "text-black dark:text-[#ebe8ef] font-bold" : "text-[#a09ba8]"}>3. Soroban Verifier: Validate Proof, claim clearance</span>
                       </div>
                     </div>
                   </div>
@@ -337,10 +337,10 @@ export const IntentTab: React.FC<IntentTabProps> = ({
       </div>
 
       {/* Settlement Registry List */}
-      <div className="p-4 bg-[#FAFAFA] dark:bg-zinc-950 flex items-center justify-between border-t border-b border-[#E5E5E5] dark:border-zinc-800">
+      <div className="p-4 bg-[#FAFAFA] dark:bg-[#141217] flex items-center justify-between border-t border-b border-[#E5E5E5] dark:border-[#1e1b22]">
         <div>
           <h2 className="font-sans font-bold text-xs text-black dark:text-white uppercase tracking-tighter">SETTLEMENT INTEGRITY LEDGER</h2>
-          <p className="text-[9px] text-[#666666] dark:text-zinc-400 font-mono uppercase tracking-tight">Active cross-chain settlement intents, commitments, solver matching, and challenger windows</p>
+          <p className="text-[9px] text-[#666666] dark:text-[#a09ba8] font-mono uppercase tracking-tight">Active cross-chain settlement intents, commitments, solver matching, and challenger windows</p>
         </div>
       </div>
       <div className="p-4">

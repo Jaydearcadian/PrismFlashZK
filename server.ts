@@ -178,12 +178,30 @@ async function startServer() {
     return { success: true, tx: "phase2-" + Date.now() };
   }
 
-function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxBlockHeight: number, routePlan?: any): { success: boolean; tx?: string; error?: string } {
+// Submits a real clearance to the deployed prism_verifier contract using the new ABI:
+// verify_and_clear_intent(attestation_signature, nullifier, payload_commitment, max_block_height).
+// The attestation_signature is a 64-byte ed25519 sig from the registered attestor (see
+// src/lib/attestor.ts and POST /api/attest). Requires the `stellar` CLI, a funded source
+// identity, and the verifier contract id in deployments/prism-assets.*.json. Returns
+// { skipped: true } when those aren't present so the caller falls back to simulation.
+function callRealSorobanClear(
+    nullifier: string,
+    payloadCommitment: string,
+    maxBlockHeight: number,
+    attestationSignature: string
+  ): { success: boolean; tx?: string; error?: string; skipped?: boolean } {
+    const verifierId = assetRegistry?.chains?.stellar?.contracts?.verifier;
+    if (!verifierId || String(verifierId).includes("PENDING_DEPLOYMENT") || !attestationSignature) {
+      return { success: false, skipped: true, error: "verifier not deployed or no attestation signature" };
+    }
     try {
       const cleanNull = nullifier.replace(/^0x/, '');
       const cleanPayload = payloadCommitment.replace(/^0x/, '');
-      const cmd = `cd /root/PrismFlashZK/contracts/soroban && stellar contract invoke --id CBWTTSZGYR7F2LUPJKVHJ2Z7Y6VNN7K2S3KHAY3O2JLUU66H433AYU2D --source-account prism-testnet-key --network testnet --send=yes -- verify_and_clear_intent --proof 00 --nullifier ${cleanNull} --payload_commitment ${cleanPayload} --max_block_height ${maxBlockHeight} 2>&1`;
-      const output = require('child_process').execSync(cmd, { encoding: 'utf8', timeout: 30000 });
+      const cleanSig = attestationSignature.replace(/^0x/, '');
+      const sourceAccount = process.env.STELLAR_SOURCE_ACCOUNT || "deployer";
+      const sorobanDir = path.join(process.cwd(), "contracts", "soroban");
+      const cmd = `stellar contract invoke --id ${verifierId} --source-account ${sourceAccount} --network testnet --send=yes -- verify_and_clear_intent --attestation_signature ${cleanSig} --nullifier ${cleanNull} --payload_commitment ${cleanPayload} --max_block_height ${maxBlockHeight} 2>&1`;
+      const output = require('child_process').execSync(cmd, { encoding: 'utf8', timeout: 30000, cwd: sorobanDir });
       if (output.includes('error') || output.includes('Failed')) {
         return { success: false, error: output.split('\n').slice(-3).join(' ') };
       }
@@ -432,7 +450,7 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
   });
 
   app.post("/api/liquidity/seed", (req, res) => {
-    const { vaultId, amount, mode = "add" } = req.body;
+    const { vaultId, amount, mode = "add", nullifier } = req.body;
     if (!vaultId || amount === undefined) {
       return res.status(400).json({ error: "Missing vaultId or amount" });
     }
@@ -441,6 +459,14 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     const value = Number(amount);
     if (!Number.isFinite(value) || value < 0) return res.status(400).json({ error: "amount must be a non-negative number" });
     vault.available = mode === "set" ? value : vault.available + value;
+    // Present when this seed reflects a real on-chain register_cross_vm_action call
+    // (see multichain_watcher.js's liquidity reconciliation loop) rather than a manual
+    // cockpit adjustment — mirror it into the same attestation-count/nullifier-log the
+    // Soroban clearing path uses, so /api/liquidity reflects real reconciliation activity.
+    if (nullifier && !liquidityState.sorobanLedger.nullifiers.includes(nullifier)) {
+      liquidityState.sorobanLedger.nullifiers.push(nullifier);
+      liquidityState.sorobanLedger.attestationCount += 1;
+    }
     recomputeSorobanIndex();
     persistLiquidityState();
     addSolverLog("SUCCESS", `Liquidity ${mode === "set" ? "set" : "seeded"}: ${vaultId} now has ${vault.available} ${vault.asset}. Soroban index refreshed.`);
@@ -486,19 +512,20 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
   });
 
   app.post("/api/route/execute", (req, res) => {
-    const { nullifier, payloadCommitment, sourceAmount, destinationPayouts, maxBlockHeight = 999999, proof, publicInputs } = req.body;
+    const { nullifier, payloadCommitment, sourceAmount, destinationPayouts, maxBlockHeight = 999999, proof, publicInputs, attestationSignature } = req.body;
     if (!nullifier || !payloadCommitment || !Array.isArray(destinationPayouts)) {
       return res.status(400).json({ error: "Missing nullifier, payloadCommitment, or destinationPayouts" });
     }
 
-    // Phase 2 CONTRACT GATE: Require proof for full enforcement
+    // CONTRACT GATE: require a real on-chain clear before mutating liquidity. The current
+    // path is the attestation model (attestationSignature → prism_verifier); the older
+    // proof-blob path is kept only as a stub for backward compatibility.
     let clearRes;
     if (proof && publicInputs) {
-      addSolverLog("INFO", `Phase 2 proof provided for ${nullifier.substring(0,10)}...`);
+      addSolverLog("INFO", `Legacy proof payload provided for ${nullifier.substring(0,10)}...`);
       clearRes = callRealSorobanClearPhase2(nullifier, proof, publicInputs, destinationPayouts);
     } else {
-      // Fallback (will be removed for strict Phase 2)
-      clearRes = callRealSorobanClear(nullifier, payloadCommitment, maxBlockHeight);
+      clearRes = callRealSorobanClear(nullifier, payloadCommitment, maxBlockHeight, attestationSignature);
     }
     if (!clearRes.success) {
       addSolverLog("ERROR", `Contract gate: Soroban rejected (Phase 2 proof required) for ${nullifier.substring(0,10)}...`);
@@ -557,9 +584,12 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     res.json({ success: true, deposit });
   });
 
-  // Simulates verifying and clearing on Stellar Soroban
+  // Verifies and clears on Stellar Soroban. When an attestationSignature is provided AND a
+  // real prism_verifier contract is deployed (deployments/prism-assets.local.json), it submits
+  // a real on-chain verify_and_clear_intent; otherwise it falls back to the simulated clear so
+  // the cockpit demo still runs.
   app.post("/api/swap/clear", (req, res) => {
-    const { nullifier, payloadCommitment, maxBlockHeight, proof, routePlan } = req.body;
+    const { nullifier, payloadCommitment, maxBlockHeight, attestationSignature, routePlan } = req.body;
 
     const currentLedger = state.stellar.ledgerSequence;
 
@@ -569,6 +599,18 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
 
     if (state.stellar.clearedIntents[nullifier]) {
       return res.status(400).json({ error: "Stellar Error: Nullifier already spent." });
+    }
+
+    // Contract-first: if a real verifier is deployed, the on-chain clear must succeed before
+    // any local state mutation. If it's not deployed (or no signature), fall through to sim.
+    let realClearTx: string | undefined;
+    const clearRes = callRealSorobanClear(nullifier, payloadCommitment, maxBlockHeight, attestationSignature);
+    if (!clearRes.skipped) {
+      if (!clearRes.success) {
+        addSolverLog("ERROR", `On-chain verify_and_clear_intent rejected for ${nullifier.substring(0, 10)}...`);
+        return res.status(400).json({ error: `Soroban clear failed: ${clearRes.error || "on-chain rejection"}` });
+      }
+      realClearTx = clearRes.tx;
     }
 
     if (routePlan?.destinationPayouts?.length) {
@@ -587,16 +629,36 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     };
 
     state.stellar.history.unshift({
-      txHash: "0x" + Math.random().toString(16).substring(2, 10) + "...",
+      txHash: realClearTx || ("0x" + Math.random().toString(16).substring(2, 10) + "..."),
       block: currentLedger,
       type: "Verify Intent",
-      details: `Soroban verified UltraHonk proof. Emitted IntentCleared for nullifier ${nullifier.substring(0, 10)}...`
+      details: realClearTx
+        ? `On-chain prism_verifier accepted attestation. Cleared nullifier ${nullifier.substring(0, 10)}...`
+        : `Soroban verified attestation (simulated). Emitted IntentCleared for nullifier ${nullifier.substring(0, 10)}...`
     });
 
     // Fire the solver daemon hook
     triggerSolverRelay(nullifier, payloadCommitment, maxBlockHeight, routePlan);
 
-    res.json({ success: true, currentLedger, liquidity: liquidityState });
+    res.json({ success: true, currentLedger, sorobanTx: realClearTx, liquidity: liquidityState });
+  });
+
+  // Attestor: verify a client UltraHonk proof and, if valid, return the ed25519 attestation
+  // signature the Soroban prism_verifier contract checks. See src/lib/attestor.ts.
+  app.post("/api/attest", async (req, res) => {
+    const { proofHex, publicInputs, maxBlockHeight } = req.body;
+    if (!proofHex || !Array.isArray(publicInputs) || maxBlockHeight === undefined) {
+      return res.status(400).json({ error: "Missing proofHex, publicInputs, or maxBlockHeight" });
+    }
+    try {
+      const { attest } = await import("./src/lib/attestor");
+      const attestation = await attest(proofHex, publicInputs, Number(maxBlockHeight));
+      addSolverLog("SUCCESS", `Attestor verified proof and signed clearance for ${attestation.nullifier.substring(0, 10)}...`);
+      res.json({ success: true, ...attestation });
+    } catch (err: any) {
+      addSolverLog("ERROR", `Attestation failed: ${err.message || err}`);
+      res.status(400).json({ error: err.message || String(err) });
+    }
   });
 
   // Triggers finalization manually if the 150 blocks have passed
@@ -927,7 +989,8 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     let filePath = "";
 
     if (type === "noir") filePath = "circuits/src/main.nr";
-    else if (type === "soroban") filePath = "contracts/soroban/src/lib.rs";
+    else if (type === "soroban") filePath = "contracts/soroban/prism_verifier/src/lib.rs";
+    else if (type === "soroban-registry") filePath = "contracts/soroban/master_state_registry/src/lib.rs";
     else if (type === "solidity") filePath = "contracts/solidity/BaseEscrow.sol";
     else if (type === "solana") filePath = "contracts/solana/programs/solana_vault/src/lib.rs";
     else if (type === "movement") filePath = "contracts/move/sources/movement_escrow.move";
@@ -942,8 +1005,18 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     }
   });
 
-  // Vite development integration or static serving
+  // ROUTING MODEL: landing.html (the 3D warm landing) is the entry at "/", and its
+  // "Enter ZK Forge" button leads to the React cockpit, which lives at "/forge" (and any
+  // other non-"/" route). This holds in BOTH dev and prod so the two behave identically.
+  const staticRoot = process.cwd();
+  const landingPage = path.join(staticRoot, "landing.html");
+
+  // "/" always serves landing.html directly (self-contained: CDN tailwind + three.js).
+  app.get("/", (_req, res) => res.sendFile(landingPage));
+  app.get("/landing.html", (_req, res) => res.sendFile(landingPage));
+
   if (process.env.NODE_ENV !== "production") {
+    // Vite SPA fallback serves the React cockpit (index.html) for /forge and all other routes.
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -955,29 +1028,10 @@ function callRealSorobanClear(nullifier: string, payloadCommitment: string, maxB
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    const staticRoot = process.cwd();
-
-    const mustServe = ["/zk-forge.html", "/launch-forge.html", "/landing.html", "/e2e-12phase.html", "/connect.html", "/proof.html", "/stellar.html", "/swap.html", "/deploy.html", "/mint.html", "/faucet.html", "/registry.html"];
-    for (const page of mustServe) {
-      const filePath = path.join(staticRoot, page);
-      app.get(page, (req, res) => {
-        if (fs.existsSync(filePath)) {
-          return res.sendFile(filePath);
-        }
-        return res.sendFile(path.join(distPath, "index.html"));
-      });
-    }
-
-    app.get("/", (req, res) => {
-      const landing = path.join(staticRoot, "landing.html");
-      if (fs.existsSync(landing)) return res.sendFile(landing);
-      return res.sendFile(path.join(distPath, "index.html"));
-    });
-
     app.use(express.static(distPath));
     app.use(express.static(staticRoot));
-
-    app.get("*", (req, res) => {
+    // Everything except "/" (handled above) → the React cockpit SPA, including /forge.
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

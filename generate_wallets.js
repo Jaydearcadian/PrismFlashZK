@@ -13,9 +13,10 @@
 
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import { Wallet } from "ethers";
 import { Keypair } from "@solana/web3.js";
+import { Keypair as StellarKeypair } from "@stellar/stellar-sdk";
+import { Account as MovementAccount } from "@aptos-labs/ts-sdk";
 
 // Visual styling constants
 const BOLD = "\x1b[1m";
@@ -61,26 +62,22 @@ fs.writeFileSync(solKeypairPath, JSON.stringify(solPrivateKeyArray));
 console.log(`  └─ Address     : ${GREEN}${solAddress}${RESET}`);
 console.log(`  └─ Private Key : ${YELLOW}[Saved to target/deploy/solana_vault-keypair.json]${RESET}`);
 
-// 3. Generate Stellar Soroban (Rust / WASM) Identity using native crypto Ed25519
+// 3. Generate Stellar Soroban Identity — real Ed25519 keypair via @stellar/stellar-sdk,
+// producing a properly StrKey-checksummed G.../S... address pair (not decorative hex).
 console.log(`\n${CYAN}[3/4] Generating Stellar Testnet (Soroban) Identity...${RESET}`);
-// We generate a valid Ed25519 keypair
-const { privateKey: stellarPrivKey, publicKey: stellarPubKey } = crypto.generateKeyPairSync("ed25519", {
-  privateKeyEncoding: { format: "der", type: "pkcs8" },
-  publicKeyEncoding: { format: "der", type: "spki" }
-});
-// Create standard mock secret/public formats for Stellar if SDK helpers are unavailable
-// Stellar secret keys start with S, public keys start with G.
-const stellarHexSecret = crypto.randomBytes(32).toString("hex").toUpperCase();
-const stellarAddress = "GD" + crypto.randomBytes(26).toString("hex").toUpperCase().substring(0, 54);
-const stellarSecret = "SC" + crypto.randomBytes(26).toString("hex").toUpperCase().substring(0, 54);
+const stellarKeypair = StellarKeypair.random();
+const stellarAddress = stellarKeypair.publicKey();
+const stellarSecret = stellarKeypair.secret();
 console.log(`  └─ Address     : ${GREEN}${stellarAddress}${RESET}`);
 console.log(`  └─ Secret Key  : ${YELLOW}${stellarSecret.substring(0, 10)}...${RESET}`);
 
-// 4. Generate Movement Porto (MoveVM / Aptos) Identity
+// 4. Generate Movement Porto (MoveVM / Aptos) Identity — real Ed25519 keypair via
+// @aptos-labs/ts-sdk, with the address correctly derived as
+// sha3-256(public_key_bytes || single_ed25519_scheme_byte), not sha3-256(private_key_bytes).
 console.log(`\n${CYAN}[4/4] Generating Movement Porto (MoveVM) Identity...${RESET}`);
-const movePrivateKeyBytes = crypto.randomBytes(32);
-const movePrivateKey = "0x" + movePrivateKeyBytes.toString("hex");
-const moveAddress = "0x" + crypto.createHash("sha3-256").update(movePrivateKeyBytes).digest("hex");
+const moveAccount = MovementAccount.generate();
+const moveAddress = moveAccount.accountAddress.toString();
+const movePrivateKey = moveAccount.privateKey.toString();
 console.log(`  └─ Address     : ${GREEN}${moveAddress}${RESET}`);
 console.log(`  └─ Private Key : ${YELLOW}${movePrivateKey.substring(0, 10)}...${RESET}`);
 
@@ -106,7 +103,7 @@ envContent.split("\n").forEach(line => {
 // Update or set variables
 envVars["EVM_PRIVATE_KEY"] = evmPrivateKey;
 envVars["EVM_ADDRESS"] = evmAddress;
-envVars["SOLANA_PRIVATE_KEY"] = solAddress; // Used for identifying the public key in dApp
+envVars["SOLANA_PRIVATE_KEY"] = solPrivateKeyStr; // JSON secret-key byte array, matches target/deploy/solana_vault-keypair.json
 envVars["SOLANA_ADDRESS"] = solAddress;
 envVars["STELLAR_PRIVATE_KEY"] = stellarSecret;
 envVars["STELLAR_ADDRESS"] = stellarAddress;

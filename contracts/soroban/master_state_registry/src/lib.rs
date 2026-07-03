@@ -1,74 +1,26 @@
-//! PrismZK Clearinghouse Contract - Stellar Soroban (Protocol 25/26 compliant)
-//! Uses native bare-metal host cryptographic primitives (bn254_multi_pairing_check)
-//! to verify off-chain generated zero-knowledge proofs at near-zero gas costs.
+//! 🏛️ MASTER STATE REGISTRY FOR CROSS-VM SINGULAR VIRTUAL POOL (SVP)
+//!
+//! The "One State Registry" hub: tracks a single canonical token's per-chain balance
+//! sheet and a bonding-curve price, kept in sync by signed `register_cross_vm_action`
+//! calls from an off-chain liquidity watcher.
+//!
+//! This is a SINGLETON per deployed instance (one `Initialized` flag, one balance
+//! sheet) — deliberately. "One canonical token per contract instance" is achieved by
+//! uploading this WASM once and running `stellar contract deploy --wasm-hash <hash>`
+//! again for each new token, giving each its own independent instance storage, rather
+//! than restructuring this contract to be keyed by a token id. See
+//! scripts/create_multivm_token.js.
+//!
+//! NOTE: this is deployed as its own WASM binary, separate from `prism_verifier` (see
+//! ../prism_verifier) — both used to live in one crate, but Soroban doesn't allow two
+//! `#[contract]` structs with colliding exported function names (both had `initialize`)
+//! in a single WASM binary.
 
 #![no_std]
 use soroban_sdk::{
-    contract, contractimpl, contracttype, contracterror, bytes, BytesN, Env, Symbol, log, symbol_short, Map, Vec, Address
+    contract, contractimpl, contracttype, contracterror, BytesN, Bytes, Env, Symbol, symbol_short, Map, Vec,
+    xdr::ToXdr,
 };
-
-#[contract]
-pub struct PrismVerifier;
-
-#[contractimpl]
-impl PrismVerifier {
-    /// Verifies an off-chain UltraHonk proof and clears the intent for multi-VM execution.
-    ///
-    /// # Arguments
-    /// * `proof` - The cryptographic ZK proof bytes (UltraHonk or Groth16).
-    /// * `nullifier` - The unique 32-byte nullifier for replay prevention.
-    /// * `payload_commitment` - The 32-byte hash binding the multi-chain execution variables.
-    /// * `max_block_height` - The maximum Stellar ledger sequence under which this intent is valid.
-    pub fn verify_and_clear_intent(
-        env: Env,
-        proof: bytes::Bytes,
-        nullifier: BytesN<32>,
-        payload_commitment: BytesN<32>,
-        max_block_height: u32,
-    ) {
-        let current_ledger = env.ledger().sequence();
-
-        // INVARIANT 1: Temporal Window Verification
-        if current_ledger > max_block_height {
-            panic!("PrismZK Error: Transaction window has expired.");
-        }
-
-        let storage = env.storage().temporary();
-
-        // INVARIANT 2: Replay Prevention Check
-        if storage.has(&nullifier) {
-            panic!("PrismZK Error: Nullifier already spent. Double spend attempt aborted.");
-        }
-
-        // INVARIANT 3: Zero Guest-Layer Math Proof Verification
-        let verification_status = env.crypto().bn254_multi_pairing_check(&proof);
-        if !verification_status {
-            panic!("PrismZK Error: Invalid cryptographic proof signature.");
-        }
-
-        // Save nullifier mapped to the payload commitment to prevent double-spending
-        storage.set(&nullifier, &payload_commitment);
-
-        // INVARIANT 4: Dynamic State-Rent & TTL Extension
-        let life_ttl_required = max_block_height.saturating_sub(current_ledger);
-
-        if life_ttl_required > 0 {
-            env.storage().temporary().extend_ttl(&nullifier, life_ttl_required, life_ttl_required);
-        }
-
-        // Emit public clearance attestation event so that off-chain TEE Solver Daemons can pick it up.
-        env.events().publish(
-            (symbol_short!("prism_att"), nullifier),
-            payload_commitment,
-        );
-
-        log!(&env, "PrismZK: Intent cleared successfully.", nullifier, payload_commitment);
-    }
-}
-
-// ==============================================================================
-// 🏛️ MASTER STATE REGISTRY FOR CROSS-VM SINGULAR VIRTUAL POOL (SVP)
-// ==============================================================================
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -207,7 +159,7 @@ impl MasterStateRegistry {
     }
 
     /// Implements Asymmetric Localized Pricing formula:
-    /// If Delta_i drops below the equilibrium threshold (0.85 / 8500), 
+    /// If Delta_i drops below the equilibrium threshold (0.85 / 8500),
     /// programmatically apply a local price penalty (lambda) to protect the vault.
     pub fn get_localized_price(env: Env, chain: Symbol) -> Result<u128, Error> {
         let storage = env.storage().instance();
@@ -275,29 +227,29 @@ impl MasterStateRegistry {
 
         // 2. Intent Cryptographic Signature Verification
         let validator_key: BytesN<32> = storage.get(&DataKey::ValidatorKey).ok_or(Error::NotInitialized)?;
-        
-        let mut message = bytes::Bytes::new(&env);
+
+        let mut message = Bytes::new(&env);
         message.append(&nullifier.clone().into());
-        message.append(&chain.to_val().into());
-        
+        message.append(&chain.clone().to_xdr(&env));
+
         let is_positive = amount_delta >= 0;
         let abs_amount = amount_delta.unsigned_abs();
-        
-        let mut amount_bytes = bytes::Bytes::new(&env);
-        amount_bytes.append(&if is_positive { 1u8.into() } else { 0u8.into() });
-        
+
+        let mut amount_bytes = Bytes::new(&env);
+        amount_bytes.push_back(if is_positive { 1u8 } else { 0u8 });
+
         let mut temp = abs_amount;
         for _ in 0..16 {
             let byte = (temp & 0xFF) as u8;
-            amount_bytes.append(&byte.into());
+            amount_bytes.push_back(byte);
             temp >>= 8;
         }
         message.append(&amount_bytes);
 
-        let sig_valid = env.crypto().ed25519_verify(&validator_key, &message, &signature);
-        if !sig_valid {
-            return Err(Error::InvalidSignature);
-        }
+        // ed25519_verify returns () and panics internally on an invalid signature —
+        // it does not return a bool, so Error::InvalidSignature can no longer be
+        // returned from here; an invalid signature now aborts the transaction directly.
+        env.crypto().ed25519_verify(&validator_key, &message, &signature);
 
         // 3. Update Balance Sheets (Instance Storage)
         let mut balances: Map<Symbol, u128> = storage.get(&DataKey::Balances).ok_or(Error::NotInitialized)?;
@@ -335,7 +287,7 @@ impl MasterStateRegistry {
         // 5. Bonding Curve Recalculation
         let initial_price: u128 = storage.get(&DataKey::InitialPrice).ok_or(Error::NotInitialized)?;
         let slope: u128 = storage.get(&DataKey::Slope).ok_or(Error::NotInitialized)?;
-        
+
         let current_global_price = initial_price
             .checked_add(slope.checked_mul(updated_global_supply).ok_or(Error::MathOverflow)?)
             .ok_or(Error::MathOverflow)?;

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Cpu, 
   Layers, 
   Lock, 
   Shield, 
@@ -163,11 +162,13 @@ export default function App() {
   }, []);
 
   // --- UI States ---
+  // The cockpit is the warm-dark "ZK Forge" world reached from landing.html, so it defaults
+  // to dark (matching that landing) unless the user has explicitly chosen light before.
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("theme") === "dark" || document.documentElement.classList.contains("dark");
+      return localStorage.getItem("theme") !== "light";
     }
-    return false;
+    return true;
   });
 
   useEffect(() => {
@@ -181,7 +182,9 @@ export default function App() {
   }, [darkMode]);
 
   const [activeTab, setActiveTab] = useState<"noir" | "soroban" | "solidity" | "solana" | "movement" | "daemon">("noir");
-  const [viewMode, setViewMode] = useState<"landing" | "cockpit">("landing");
+  // The React app is served at /forge (the cockpit); landing.html is the real landing page,
+  // so we boot straight into the cockpit and the "back" control returns to landing.html.
+  const [viewMode, setViewMode] = useState<"landing" | "cockpit">("cockpit");
   const [cockpitTab, setCockpitTab] = useState<"overview" | "intent" | "vaults" | "blueprints" | "settings">("overview");
   const [editingChainId, setEditingChainId] = useState<string | null>(null);
   const [manualAddressValue, setManualAddressValue] = useState<string>("");
@@ -485,8 +488,8 @@ export default function App() {
           movementAmount
         };
         const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12;
-        const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
-        
+        const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+
         await ethereum.request({
           method: "personal_sign",
           params: [`Confirming PrismFlash Cross-VM swap for ${baseAmount} USDC with nullifier: ${sdkResult.nullifier}`, walletAddresses.base]
@@ -521,7 +524,7 @@ export default function App() {
       movementAmount
     };
     const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12;
-    const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+    const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
     setStepData(sdkResult);
 
     setLiveLogs(prev => [
@@ -550,14 +553,40 @@ export default function App() {
     setLiveError(null);
     setLiveLogs(prev => [
       ...prev,
-      "[PROVER] Initializing Noir Web-Assembly Circuit Proving backend...",
-      "[PROVER] Compiling circuits/src/main.nr...",
-      "[PROVER] Loading witness inputs and nullifier hash...",
-      "[PROVER] Computing BN254 Pairing constraints...",
-      "[PROVER] Witness generation complete! (95 constraints checked)",
-      "[PROVER] Generating UltraHonk Proof (size: 1,024 bytes)...",
-      "[PROVER] ZK-Proof generation completed successfully!"
+      "[PROVER] Initializing Noir/bb.js WebAssembly proving backend (client-side)...",
+      "[PROVER] Executing witness for circuits/src/main.nr — secret_key stays in the browser...",
     ]);
+
+    try {
+      // Real client-side UltraHonk proof: secret_key never leaves the browser.
+      const { prove } = await import("./lib/prism_prover");
+      const maxBlockHeight = stepData.maxBlockHeight;
+      const { proofHex, publicInputs, nullifier } = await prove(secretKey, nonce, stepData.intentsRoot, maxBlockHeight);
+      setLiveLogs(prev => [...prev, `[PROVER] UltraHonk proof generated (${publicInputs.length} public inputs). Requesting attestation...`]);
+
+      // Server-side attestor verifies the proof and signs the clearance the contract checks.
+      const attestRes = await fetch("/api/attest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proofHex, publicInputs, maxBlockHeight }),
+      });
+      const attestData = await attestRes.json();
+      if (!attestData.success) throw new Error(attestData.error || "attestation rejected");
+
+      setStepData((prev: any) => ({ ...prev, proofHex, attestationSignature: attestData.signature }));
+      setLiveLogs(prev => [
+        ...prev,
+        `[ATTESTOR] Proof verified. ed25519 clearance signed for nullifier ${String(nullifier).substring(0, 10)}...`,
+      ]);
+    } catch (err: any) {
+      // No compiled circuit / no CRS access / attestor down: continue in simulated clearance
+      // mode so the cockpit still demonstrates the flow (see /api/swap/clear fallback).
+      setLiveLogs(prev => [
+        ...prev,
+        `[PROVER] Real proving unavailable (${err.message || err}). Falling back to simulated clearance.`,
+      ]);
+    }
+
     setLiveStep("sign_clear");
   };
 
@@ -605,7 +634,7 @@ export default function App() {
         nullifier: stepData.nullifier,
         payloadCommitment: stepData.payloadCommitment,
         maxBlockHeight,
-        proof: stepData.proof,
+        attestationSignature: stepData.attestationSignature,
         routePlan: stepData.routePlan
       })
     });
@@ -655,8 +684,8 @@ export default function App() {
       };
       
       const maxBlockHeight = (chains?.stellar?.ledgerSequence || 5240321) + 12; // Valid for 12 Stellar ledgers
-      
-      const sdkResult = PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
+
+      const sdkResult = await PrismSDK.compileIntent(secretKey, nonce, intent, maxBlockHeight);
       setStepData(sdkResult);
       await new Promise(r => setTimeout(r, 1200));
 
@@ -690,7 +719,6 @@ export default function App() {
           nullifier: sdkResult.nullifier,
           payloadCommitment: sdkResult.payloadCommitment,
           maxBlockHeight,
-          proof: sdkResult.proof,
           routePlan: sdkResult.routePlan
         })
       });
@@ -781,38 +809,38 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] dark:bg-zinc-950 text-[#000000] dark:text-zinc-100 antialiased flex flex-col font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-[#F9F9F9] dark:bg-[#141217] text-[#000000] dark:text-[#ebe8ef] antialiased flex flex-col font-sans transition-colors duration-300">
       
       {/* HEADER SECTION */}
-      <header className="border-b border-[#E5E5E5] dark:border-zinc-800 bg-[#F9F9F9] dark:bg-zinc-900 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-50 transition-colors">
+      <header className="border-b border-[#E5E5E5] dark:border-[#1e1b22] bg-[#F9F9F9] dark:bg-[#17151b] px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-50 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="border border-black dark:border-zinc-700 p-2 rounded-none bg-white dark:bg-zinc-800">
-            <Cpu className="w-6 h-6 text-[#d9a078] dark:text-[#d9a078]" />
+          <div className="border border-black dark:border-[#2d2833] px-3 py-2 rounded-none bg-white dark:bg-[#1e1b22]">
+            <span className="font-display text-lg tracking-widest font-light text-black dark:text-white lowercase">prism<span className="text-[#d9a078]">.</span></span>
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-sans text-base font-bold tracking-tighter text-black dark:text-white uppercase">PRISMFLASH // ASYMMETRIC INTENT CONTROL LAYER</h1>
+              <h1 className="font-display text-base font-light tracking-[0.2em] text-black dark:text-white uppercase">ZK FORGE // MULTI-VM COORDINATION PLANES</h1>
               <span className={`font-mono text-[9px] px-2 py-0.5 border font-bold uppercase ${isLiveMode ? "bg-amber-600/10 text-amber-600 border-amber-600/30 dark:border-amber-600/50" : "bg-[#d9a078]/10 text-[#d9a078] border-[#d9a078]/30 dark:border-[#d9a078]/50"}`}>
                 {isLiveMode ? "● LIVE_TESTNET_NETWORKS" : "● MVP_SOLVER_SIMULATION"}
               </span>
             </div>
-            <p className="text-[10px] text-[#666666] dark:text-zinc-400 font-mono mt-0.5 uppercase tracking-tight">Multi-VM Decentralized Settlement Network & Cryptographic Clearinghouse</p>
+            <p className="text-[10px] text-[#666666] dark:text-[#a09ba8] font-mono mt-0.5 uppercase tracking-tight">One Chainless Identity · One State Registry · Reflector Network</p>
           </div>
         </div>
 
         {/* Navigation & Theme Panel */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Back to Landing button */}
-          <button
-            onClick={() => setViewMode("landing")}
-            className="flex items-center gap-1 px-2.5 py-1.5 border border-black dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-[#FAFAFA] dark:hover:bg-zinc-700 font-mono text-[9px] text-black dark:text-white transition-all cursor-pointer rounded-none uppercase font-bold"
+          {/* Back to landing.html (the real landing page) */}
+          <a
+            href="/"
+            className="flex items-center gap-1 px-2.5 py-1.5 border border-black dark:border-[#2d2833] bg-white dark:bg-[#1e1b22] hover:bg-[#FAFAFA] dark:hover:bg-[#2d2833] font-mono text-[9px] text-black dark:text-white transition-all cursor-pointer rounded-none uppercase font-bold"
           >
             <ArrowRight className="w-3.5 h-3.5 rotate-180" />
             <span>PORTAL LANDING</span>
-          </button>
+          </a>
 
           {/* Network Mode Switcher (Demo Sandbox vs. Live Production Testnets) */}
-          <div className="flex items-center gap-1 bg-[#FAFAFA] dark:bg-zinc-800 border border-[#E5E5E5] dark:border-zinc-700 p-1 rounded-none font-mono text-[10px]">
+          <div className="flex items-center gap-1 bg-[#FAFAFA] dark:bg-[#1e1b22] border border-[#E5E5E5] dark:border-[#2d2833] p-1 rounded-none font-mono text-[10px]">
             <button
               onClick={() => {
                 setIsLiveMode(false);
@@ -821,7 +849,7 @@ export default function App() {
               className={`px-2.5 py-1 uppercase font-bold transition-all cursor-pointer rounded-none text-[9px] ${
                 !isLiveMode
                   ? "bg-[#d9a078] dark:bg-[#d9a078] text-white dark:text-black"
-                  : "bg-white dark:bg-zinc-900 hover:bg-[#E5E5E5] dark:hover:bg-zinc-800 text-[#666666] dark:text-zinc-400"
+                  : "bg-white dark:bg-[#17151b] hover:bg-[#E5E5E5] dark:hover:bg-[#1e1b22] text-[#666666] dark:text-[#a09ba8]"
               }`}
             >
               ● SANDBOX
@@ -834,7 +862,7 @@ export default function App() {
               className={`px-2.5 py-1 uppercase font-bold transition-all cursor-pointer rounded-none flex items-center gap-1 text-[9px] ${
                 isLiveMode
                   ? "bg-amber-600 text-white"
-                  : "bg-white dark:bg-zinc-900 hover:bg-[#E5E5E5] dark:hover:bg-zinc-800 text-[#666666] dark:text-zinc-400"
+                  : "bg-white dark:bg-[#17151b] hover:bg-[#E5E5E5] dark:hover:bg-[#1e1b22] text-[#666666] dark:text-[#a09ba8]"
               }`}
             >
               <Globe className="w-3 h-3" />
@@ -843,15 +871,15 @@ export default function App() {
           </div>
 
           {/* Governance Panel */}
-          <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-[#E5E5E5] dark:border-zinc-800 p-1 px-2 rounded-none">
-            <span className="text-[9px] font-mono text-[#666666] dark:text-zinc-400 uppercase hidden sm:inline">TEE ENFORCEMENT:</span>
+          <div className="flex items-center gap-3 bg-white dark:bg-[#17151b] border border-[#E5E5E5] dark:border-[#1e1b22] p-1 px-2 rounded-none">
+            <span className="text-[9px] font-mono text-[#666666] dark:text-[#a09ba8] uppercase hidden sm:inline">TEE ENFORCEMENT:</span>
             <button 
               onClick={() => handleToggleHardware(!isHardwareEnforced)}
-              className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer border border-[#E5E5E5] dark:border-zinc-700 rounded-none transition-colors duration-200 ease-in-out focus:outline-none ${isHardwareEnforced ? 'bg-[#d9a078] dark:bg-[#d9a078]' : 'bg-[#E5E5E5] dark:bg-zinc-800'}`}
+              className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer border border-[#E5E5E5] dark:border-[#2d2833] rounded-none transition-colors duration-200 ease-in-out focus:outline-none ${isHardwareEnforced ? 'bg-[#d9a078] dark:bg-[#d9a078]' : 'bg-[#E5E5E5] dark:bg-[#1e1b22]'}`}
             >
               <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-none bg-white border border-[#CCCCCC] transition duration-200 ease-in-out ${isHardwareEnforced ? 'translate-x-3.5' : 'translate-x-0'}`} />
             </button>
-            <span className={`text-[9px] font-mono uppercase px-1 py-0.5 border hidden lg:inline ${isHardwareEnforced ? 'bg-[#d9a078]/10 text-[#d9a078] dark:text-[#d9a078] border-[#d9a078]/30' : 'bg-[#FAFAFA] dark:bg-zinc-800 text-[#999999] border-[#E5E5E5] dark:border-zinc-800'}`}>
+            <span className={`text-[9px] font-mono uppercase px-1 py-0.5 border hidden lg:inline ${isHardwareEnforced ? 'bg-[#d9a078]/10 text-[#d9a078] dark:text-[#d9a078] border-[#d9a078]/30' : 'bg-[#FAFAFA] dark:bg-[#1e1b22] text-[#999999] border-[#E5E5E5] dark:border-[#1e1b22]'}`}>
               {isHardwareEnforced ? "TEE Active" : "Optimistic"}
             </span>
           </div>
@@ -859,7 +887,7 @@ export default function App() {
           {/* Dark Mode switcher */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="flex items-center gap-1.5 px-2 py-1.5 border border-[#E5E5E5] dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-[#FAFAFA] dark:hover:bg-zinc-700 font-mono text-[9px] text-black dark:text-white transition-all cursor-pointer rounded-none uppercase font-bold"
+            className="flex items-center gap-1.5 px-2 py-1.5 border border-[#E5E5E5] dark:border-[#2d2833] bg-white dark:bg-[#1e1b22] hover:bg-[#FAFAFA] dark:hover:bg-[#2d2833] font-mono text-[9px] text-black dark:text-white transition-all cursor-pointer rounded-none uppercase font-bold"
             title="Toggle System Visual Theme"
           >
             <span className={`w-1.5 h-1.5 rounded-none ${darkMode ? "bg-amber-500" : "bg-black"}`} />
@@ -869,13 +897,13 @@ export default function App() {
       </header>
 
       {/* MAIN COCKPIT THREE-COLUMN LAYOUT */}
-      <main className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-0 border-b border-[#E5E5E5] dark:border-zinc-800">
+      <main className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-0 border-b border-[#E5E5E5] dark:border-[#1e1b22]">
            {/* COLUMN 1: LEFT NAVIGATION SIDEBAR */}
-        <section className="col-span-12 xl:col-span-2 flex flex-col justify-between bg-white dark:bg-zinc-900 border-r border-[#E5E5E5] dark:border-zinc-800 xl:max-h-[calc(100vh-73px)] overflow-y-auto scrollbar-thin transition-colors duration-300">
-          <div className="flex flex-col divide-y divide-[#E5E5E5] dark:divide-zinc-800">
+        <section className="col-span-12 xl:col-span-2 flex flex-col justify-between bg-white dark:bg-[#17151b] border-r border-[#E5E5E5] dark:border-[#1e1b22] xl:max-h-[calc(100vh-73px)] overflow-y-auto scrollbar-thin transition-colors duration-300">
+          <div className="flex flex-col divide-y divide-[#E5E5E5] dark:divide-[#1e1b22]">
             {/* Logo / Title Area */}
-            <div className="p-4 bg-[#FAFAFA] dark:bg-zinc-950 flex flex-col gap-2">
-              <span className="text-[9px] font-mono text-[#666666] dark:text-zinc-400 uppercase tracking-widest font-bold">COCKPIT NAVIGATION</span>
+            <div className="p-4 bg-[#FAFAFA] dark:bg-[#141217] flex flex-col gap-2">
+              <span className="text-[9px] font-mono text-[#666666] dark:text-[#a09ba8] uppercase tracking-widest font-bold">COCKPIT NAVIGATION</span>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#d9a078] dark:bg-[#d9a078] animate-pulse" />
                 <span className="text-[10px] font-mono uppercase text-black dark:text-white font-bold">ACTIVE ROUTER V1.0</span>
@@ -892,7 +920,7 @@ export default function App() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "overview"
                     ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
-                    : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                    : "bg-white dark:bg-[#17151b] border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#1e1b22] text-[#4a4451] dark:text-[#c9c3d1]"
                 }`}
               >
                 <Activity className="w-4 h-4" />
@@ -907,7 +935,7 @@ export default function App() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "intent"
                     ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
-                    : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                    : "bg-white dark:bg-[#17151b] border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#1e1b22] text-[#4a4451] dark:text-[#c9c3d1]"
                 }`}
               >
                 <Zap className="w-4 h-4" />
@@ -922,7 +950,7 @@ export default function App() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "vaults"
                     ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
-                    : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                    : "bg-white dark:bg-[#17151b] border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#1e1b22] text-[#4a4451] dark:text-[#c9c3d1]"
                 }`}
               >
                 <Coins className="w-4 h-4" />
@@ -937,7 +965,7 @@ export default function App() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "blueprints"
                     ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
-                    : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                    : "bg-white dark:bg-[#17151b] border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#1e1b22] text-[#4a4451] dark:text-[#c9c3d1]"
                 }`}
               >
                 <Code2 className="w-4 h-4" />
@@ -952,7 +980,7 @@ export default function App() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 font-sans text-xs font-bold uppercase tracking-tight transition-all rounded-none cursor-pointer border ${
                   cockpitTab === "settings"
                     ? "bg-black dark:bg-[#d9a078] text-white dark:text-black border-black dark:border-[#d9a078]"
-                    : "bg-white dark:bg-zinc-900 border-transparent hover:bg-[#FAFAFA] dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+                    : "bg-white dark:bg-[#17151b] border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#1e1b22] text-[#4a4451] dark:text-[#c9c3d1]"
                 }`}
               >
                 <Sliders className="w-4 h-4" />
@@ -962,7 +990,7 @@ export default function App() {
           </div>
 
           {/* Bottom Diagnostics Block */}
-          <div className="p-4 bg-[#FAFAFA] dark:bg-zinc-950 border-t border-[#E5E5E5] dark:border-zinc-800 space-y-2 text-[9px] font-mono text-zinc-500">
+          <div className="p-4 bg-[#FAFAFA] dark:bg-[#141217] border-t border-[#E5E5E5] dark:border-[#1e1b22] space-y-2 text-[9px] font-mono text-[#6b6472]">
             <div className="flex justify-between">
               <span>LEDGER SYNC:</span>
               <span className="text-[#00A86B] font-bold">STABLE</span>
@@ -981,7 +1009,7 @@ export default function App() {
         </section>
 
         {/* COLUMN 2: CENTER PAGE WORKSPACE */}
-        <section className="col-span-12 xl:col-span-7 flex flex-col bg-[#F9F9F9] dark:bg-zinc-950 overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
+        <section className="col-span-12 xl:col-span-7 flex flex-col bg-[#F9F9F9] dark:bg-[#141217] overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
           
           {cockpitTab === "overview" && (
             <OverviewTab
@@ -1087,7 +1115,7 @@ export default function App() {
         </section>
 
         {/* COLUMN 2: CENTER PANEL (Visual Telemetry, Analytics & Liquidity Overview) */}
-        <section className="col-span-12 xl:col-span-5 flex flex-col bg-[#F9F9F9] dark:bg-zinc-950 divide-y divide-[#E5E5E5] dark:divide-zinc-800 overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
+        <section className="col-span-12 xl:col-span-5 flex flex-col bg-[#F9F9F9] dark:bg-[#141217] divide-y divide-[#E5E5E5] dark:divide-[#1e1b22] overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
           
           {/* TELEMETRY MATRIX */}
           <TelemetryMatrix
@@ -1120,15 +1148,15 @@ export default function App() {
         </section>
 
         {/* COLUMN 3: RIGHT SIDEBAR (Contract Blueprint & Live Daemon logs) */}
-        <section className="col-span-12 xl:col-span-4 flex flex-col divide-y divide-[#E5E5E5] dark:divide-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
+        <section className="col-span-12 xl:col-span-4 flex flex-col divide-y divide-[#E5E5E5] dark:divide-[#1e1b22] bg-white dark:bg-[#17151b] overflow-y-auto xl:max-h-[calc(100vh-73px)] scrollbar-thin transition-colors duration-300">
           
           {/* DAEMON LOG STREAM */}
-          <div className="bg-white dark:bg-zinc-900 transition-colors">
+          <div className="bg-white dark:bg-[#17151b] transition-colors">
             <DaemonStream solverLogs={solverLogs} />
           </div>
 
           {/* CONTRACT INSPECTOR */}
-          <div className="bg-white dark:bg-zinc-900 transition-colors">
+          <div className="bg-white dark:bg-[#17151b] transition-colors">
             <ContractInspector
               contractCode={contractCode}
               activeTab={activeTab}
@@ -1143,15 +1171,15 @@ export default function App() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-[#E5E5E5] dark:border-zinc-800 bg-[#FAFAFA] dark:bg-zinc-900 py-4 px-6 text-center text-[9px] font-mono text-[#666666] dark:text-zinc-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 transition-colors">
-        <span>PRISMFLASH // SECURE MULTI-VM RELAY SOLVER COCKPIT &copy; 2026. ALL RIGHTS RESERVED.</span>
+      <footer className="border-t border-[#E5E5E5] dark:border-[#1e1b22] bg-[#FAFAFA] dark:bg-[#17151b] py-4 px-6 text-center text-[9px] font-mono text-[#666666] dark:text-[#a09ba8] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 transition-colors">
+        <span>PRISM ZK FORGE // STELLAR-VERIFIED MULTI-VM COORDINATION &copy; 2026</span>
         <div className="flex items-center justify-center gap-4 text-[#d9a078] dark:text-[#d9a078]">
           <span className="flex items-center gap-1 font-bold">
             <span className="w-1.5 h-1.5 bg-[#00A86B] rounded-none animate-pulse" />
             SOLVER_DAEMON_ONLINE
           </span>
-          <span className="text-[#E5E5E5] dark:text-zinc-700">|</span>
-          <span className="text-[#666666] dark:text-zinc-500">STELLAR_RPC_V26.3</span>
+          <span className="text-[#E5E5E5] dark:text-[#2d2833]">|</span>
+          <span className="text-[#666666] dark:text-[#6b6472]">STELLAR_RPC_V26.3</span>
         </div>
       </footer>
 
