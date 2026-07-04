@@ -3,7 +3,7 @@ name = "prism_movement_escrow"
 version = "1.0.0"
 
 [addresses]
-prism_addr = "0x89c72c2fc93fe01b31a316b24df41f2da84a9ffc"
+prism_addr = "0xf7fae5b29b4a98d73ca57196edd033fa77a5ac86ed4cb6efab67c5b76d72561e"
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "mainnet" }
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "aptos-release-v1.5.0" }

@@ -5,7 +5,7 @@ seeds = true
 skip-lint = false
 
 [programs.devnet]
-solana_vault = "PrisMFLasH111111111111111111111111111111111"
+solana_vault = "9p4RB3gHqVFpRHFfmi5rqJX9XFAoVfbsHu1Bb7TAenEB"
 
 [registry]
 url = "https://api.apr.dev"

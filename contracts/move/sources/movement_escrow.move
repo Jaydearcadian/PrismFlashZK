@@ -52,7 +52,7 @@ module prism_addr::movement_escrow {
     }
 
     /// Seeds the vault with payout liquidity. Without this the vault is created empty and every
-    /// `process_payout` aborts on an insufficient-balance extract — this is what makes real payouts
+    /// `process_payout` aborts on an insufficient-balance extract - this is what makes real payouts
     /// possible. Withdraws `amount` of `CoinType` from the funder and merges it into the vault.
     public entry fun fund_vault<CoinType>(funder: &signer, amount: u64) acquires TokenVault {
         let coins = coin::withdraw<CoinType>(funder, amount);

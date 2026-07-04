@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("PrisMFLasH111111111111111111111111111111111");
+declare_id!("9p4RB3gHqVFpRHFfmi5rqJX9XFAoVfbsHu1Bb7TAenEB");
 
 #[program]
 pub mod solana_vault {

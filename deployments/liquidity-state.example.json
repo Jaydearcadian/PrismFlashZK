@@ -1,40 +1,42 @@
 {
-  "_comment": "TEMPLATE — all balances start at 0 because nothing has been deployed/issued yet. scripts/create_multivm_token.js overwrites deployments/liquidity-state.local.json with real balances after a real token is issued across all four chains.",
+  "_comment": "ILLUSTRATIVE DEMO SEED — these are representative figures so `npm run dev` shows a live-looking unified-liquidity layer out of the box (the cockpit's Spoke Vaults / Liquidity views read this file). They are NOT on-chain balances. A real deploy via scripts/create_multivm_token.js writes deployments/liquidity-state.local.json (gitignored) with the actual issued balances, and server.ts prefers that file when it exists.",
   "updatedAt": null,
   "vaults": {
     "base-escrow-vault": {
       "role": "source-lock",
       "asset": "pUSD",
-      "available": 0,
-      "locked": 0,
+      "available": 500000,
+      "locked": 12500,
       "settled": 0
     },
     "solana-vault-pda": {
       "role": "destination-payout",
       "asset": "pUSD",
-      "available": 0,
+      "available": 250000,
       "locked": 0,
-      "settled": 0
+      "settled": 8400
     },
     "movement-vault": {
       "role": "destination-payout",
       "asset": "pUSD",
-      "available": 0,
+      "available": 250000,
       "locked": 0,
-      "settled": 0
+      "settled": 4200
     },
     "stellar-master-state-registry": {
       "role": "liquidity-index",
       "asset": "pUSD",
-      "available": 0,
+      "available": 500000,
       "locked": 0,
       "settled": 0
     }
   },
   "sorobanLedger": {
-    "totalIndexedLiquidityUsd": 0,
-    "pendingSettlements": 0,
-    "nullifiers": [],
-    "attestationCount": 0
+    "totalIndexedLiquidityUsd": 500000,
+    "pendingSettlements": 1,
+    "nullifiers": [
+      "0x1f3a9c4e2b7d605844af1c9e30d5b8f27a6c19e04b8d3f5a2c7e19bd4460a3f1"
+    ],
+    "attestationCount": 47
   }
 }
